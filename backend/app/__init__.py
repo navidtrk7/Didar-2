@@ -1,0 +1,1 @@
+"""Didar Gold API — FastAPI modular monolith."""

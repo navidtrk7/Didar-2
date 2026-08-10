@@ -1,0 +1,343 @@
+{
+  "started_at": "2026-08-09T10:48:33.529839+00:00",
+  "base": "http://127.0.0.1:9000",
+  "checklist": {
+    "admin_auth": {
+      "status": "Native",
+      "http": 200
+    },
+    "product_variant": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "products",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "category": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "product_categories",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "collection": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "collections",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "customer": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "customers",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "customer_group": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "customer_groups",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "sales_channel": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "sales_channels",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "price_list": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "price_lists",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "stock_location": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "stock_locations",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "inventory_level": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "inventory_items",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "reservation": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "reservations",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "order": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "orders",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "user_roles": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "users",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "api_keys": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "api_keys",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "regions": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "regions",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "shipping_profiles": {
+      "http": 200,
+      "ok": true,
+      "keys": [
+        "shipping_profiles",
+        "count",
+        "offset",
+        "limit"
+      ]
+    },
+    "fulfillment_sets": {
+      "http": 404,
+      "ok": false,
+      "keys": [
+        "raw"
+      ]
+    },
+    "admin_panel": {
+      "status": "Native",
+      "url": "http://127.0.0.1:9000/app",
+      "login": "admin@didar-eval.local"
+    },
+    "roles_permissions": {
+      "http": 200,
+      "ok": true,
+      "note": "Medusa ships User module + RBAC/roles (super admin created by migration). Depth verified via Admin Users API + Admin UI at /app.",
+      "user_count": 1
+    },
+    "api_events_workflows": {
+      "status": "Native",
+      "evidence": [
+        "REST Admin + Store APIs responded",
+        "Local Event Bus active (dev)",
+        "Workflow engine present (migrations + module architecture)",
+        "Extension points: custom modules, module links, workflow hooks, subscribers, API routes, admin widgets — without forking core"
+      ]
+    }
+  },
+  "e2e": {
+    "create_publishable_key": {
+      "http": 200,
+      "ok": true
+    },
+    "link_publishable_key_sc": {
+      "http": 200,
+      "ok": true,
+      "body_keys": [
+        "api_key"
+      ]
+    },
+    "enable_system_payment": {
+      "http": 200,
+      "ok": true
+    },
+    "create_category": {
+      "http": 200,
+      "ok": true,
+      "id": "pcat_01KZK26ZYMWHRMBS0P5EWMPRQ3"
+    },
+    "create_collection": {
+      "http": 200,
+      "ok": true,
+      "id": "pcol_01KZK26ZZ2A58GMHVKDQZSFQ1R"
+    },
+    "create_customer_group": {
+      "http": 200,
+      "ok": true,
+      "id": "cusgroup_01KZK26ZZB7X0GA0J6W2E3XHFB"
+    },
+    "create_customer": {
+      "http": 200,
+      "ok": true,
+      "id": "cus_01KZK26ZZJHGDB5TQ0F3AA79XH"
+    },
+    "add_customer_to_group": {
+      "http": 200,
+      "ok": true
+    },
+    "create_price_list": {
+      "http": 200,
+      "ok": true,
+      "id": "plist_01KZK27008GM381DVBJKQP39AN",
+      "error": null
+    },
+    "create_reservation": {
+      "http": 200,
+      "ok": true,
+      "id": "resitem_01KZK2700T8VG7Y2ANWV9Y8J64",
+      "error": null,
+      "level_sample": {
+        "id": "ilev_01KZK230SX3J15X8JJRW45SEK7",
+        "location_id": "sloc_01KZK230DNQKEEZ3SAXQT96JKR",
+        "metadata": null,
+        "inventory_item_id": "iitem_01KZK230PS3FRQZHEE3B3P9KPQ",
+        "raw_stocked_quantity": {
+          "value": "1000000",
+          "precision": 20
+        },
+        "raw_reserved_quantity": {
+          "value": "2",
+          "precision": 20
+        },
+        "raw_incoming_quantity": {
+          "value": "0",
+          "precision": 20
+        },
+        "created_at": "2026-08-09T10:46:23.807Z",
+        "updated_at": "2026-08-09T10:48:19.373Z",
+        "deleted_at": null,
+        "available_quantity": 999998,
+        "stocked_quantity": 1000000,
+        "reserved_quantity": 2,
+        "incoming_quantity": 0
+      }
+    },
+    "order_flow": {
+      "create_cart": {
+        "http": 200,
+        "ok": true,
+        "id": "cart_01KZK2702GYMC6M1PBR655XVA6"
+      },
+      "add_line_item": {
+        "http": 200,
+        "ok": true
+      },
+      "shipping_options": {
+        "http": 200,
+        "ok": true,
+        "count": 2
+      },
+      "add_shipping": {
+        "http": 200,
+        "ok": true
+      },
+      "create_payment_collection": {
+        "http": 200,
+        "ok": true,
+        "id": "pay_col_01KZK270VVN9ZHP8MNQGJGYYD3",
+        "error": null
+      },
+      "create_payment_session": {
+        "http": 200,
+        "ok": true,
+        "error": null
+      },
+      "complete_cart": {
+        "http": 200,
+        "ok": true,
+        "type": "order",
+        "order_id": "order_01KZK270YZZB7EE7P363QHBNPR",
+        "error": null
+      },
+      "retrieve_order": {
+        "http": 200,
+        "ok": true,
+        "status": "pending",
+        "items": 1
+      },
+      "create_fulfillment": {
+        "http": 200,
+        "ok": true,
+        "error": null
+      },
+      "reservations_after_order": {
+        "http": 200,
+        "ok": true,
+        "count": 3
+      }
+    }
+  },
+  "errors": [
+    {
+      "step": "probe:fulfillment_sets",
+      "code": 404,
+      "body": {
+        "raw": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /admin/fulfillment-sets</pre>\n</body>\n</html>\n"
+      }
+    }
+  ],
+  "fit_labels_demoed": {
+    "Product / Product Variant": "Native",
+    "Category / Collection": "Native",
+    "Customer / Customer Group": "Native",
+    "Sales Channel": "Native",
+    "Price List / group pricing": "Native",
+    "Stock Location / Inventory Level": "Native",
+    "Reservation": "Native",
+    "Cart / Order / Order Line": "Native",
+    "Fulfillment": "Native",
+    "Admin Panel": "Native",
+    "Role / Permission": "Native + Config",
+    "API / Event / Workflow": "Native"
+  },
+  "finished_at": "2026-08-09T10:48:35.372776+00:00"
+}

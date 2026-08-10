@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* توکن‌های برند از didargold.com */
+:root {
+  --ink: #041e42;
+  --ink-soft: #0b2a52;
+  --mist: #f7f3ee;
+  --surface: #fffaf3;
+  --surface-glass: rgba(255, 250, 243, 0.88);
+  --line: rgba(176, 138, 87, 0.28);
+  --muted: rgba(4, 30, 66, 0.72);
+  --gold: #b08a57;
+  --gold-bright: #c9a46e;
+  --gold-deep: #835f26;
+  --vault: #041e42;
+  --ok: #0f6b4c;
+  --danger: #9f1239;
+  --shadow: 0 20px 50px -32px rgba(4, 30, 66, 0.45);
+  --radius: 1rem;
+  --background: var(--mist);
+  --foreground: var(--ink);
+  --ring: color-mix(in oklab, var(--gold) 65%, white);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  /* --font-display comes from next/font on <html>; do not redefine (was circular). */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*
+ * Grid items default to min-width:auto, so wide tables/LTR codes refuse to shrink
+ * and overflow their card (especially visible in RTL — end column gets clipped).
+ */
+.grid > * {
+  min-width: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--mist);
+  color: var(--ink);
+  font-family: var(--font-body), Tahoma, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--gold) 35%, white);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.tabular-nums,
+.font-mono,
+[data-ltr] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+.field {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--mist);
+  padding: 0.7rem 0.9rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.field:hover {
+  border-color: color-mix(in oklab, var(--gold) 50%, var(--line));
+}
+
+.field:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 25%, transparent);
+  background: white;
+}
+
+.page-enter {
+  animation: page-in 0.35s ease both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    110deg,
+    #835f26 0%,
+    #c9a46e 25%,
+    #b08a57 50%,
+    #e2c48a 75%,
+    #835f26 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4.5s linear infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
