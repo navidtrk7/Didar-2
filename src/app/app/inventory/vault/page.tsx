@@ -8,19 +8,19 @@ import { DataTable } from "@/components/data-table";
 import { ShieldCheck, Warehouse, Lock } from "lucide-react";
 
 export default function InventoryVaultPage() {
-  const platform = usePlatform();
+  const platform = usePlatform() as any;
   const rawSealed = platform.sealedItems || [];
   const rawIssued = platform.issuedAssets || [];
 
   const items = rawSealed.length > 0
     ? rawSealed
-    : rawIssued.map((a) => ({
+    : rawIssued.map((a: any) => ({
         uid: a.uid,
         weight: a.weightGrams || 2.15,
-        skuName: a.skuName || "طلا ۱۸ عیار",
+        skuName: a.skuName || a.name || "طلا ۱۸ عیار",
       }));
 
-  const totalVaultWeight = items.reduce((acc, item) => acc + (item.weight || 2.15), 0);
+  const totalVaultWeight = items.reduce((acc: number, item: any) => acc + (item.weight || 2.15), 0);
 
   return (
     <div className="space-y-6">
@@ -46,7 +46,7 @@ export default function InventoryVaultPage() {
 
         <DataTable
           headers={["شناسه پلمب DDR", "محصول", "وزن دقیق", "موقعیت در خزانه", "وضعیت قفل"]}
-          rows={items.map((item, idx) => [
+          rows={items.map((item: any, idx: number) => [
             <span key={`${item.uid}-u`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
               {item.uid}
             </span>,
