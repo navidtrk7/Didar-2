@@ -28,7 +28,7 @@ export default function ProductApprovalsPage() {
           headers={["کد SKU", "نام محصول", "وزن کاتالوگ", "عیار", "وضعیت QC", "تایید نهایی"]}
           rows={skus.map((s) => [
             <span key={`${s.id}-code`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
-              {s.code}
+              {s.skuCode || (s as any).code}
             </span>,
             s.name,
             formatWeight(s.catalogWeight),
@@ -39,7 +39,7 @@ export default function ProductApprovalsPage() {
             <Button
               key={`${s.id}-app`}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1"
-              onClick={() => handleApprove(s.code)}
+              onClick={() => handleApprove(s.skuCode || (s as any).code)}
             >
               <CheckCircle2 className="w-3.5 h-3.5 inline ml-1" />
               تایید ورود به کاتالوگ
