@@ -122,14 +122,14 @@ type Person = {
 
 type Tab = "parties" | "roles" | "people";
 
-export default function NetworkDomainPage() {
+export default function NetworkDomainPage({ initialFilter }: { initialFilter?: string } = {}) {
   const { toast } = useToast();
   const { role } = useSession();
   const canManage = roleHasPermission(role, "network.manage");
 
   const [tab, setTab] = useState<Tab>("parties");
   const [types, setTypes] = useState<PartyType[]>([]);
-  const [kindFilter, setKindFilter] = useState<string>("");
+  const [kindFilter, setKindFilter] = useState<string>(initialFilter || "");
   const [unassignedOnly, setUnassignedOnly] = useState(false);
   const [parties, setParties] = useState<Party[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
