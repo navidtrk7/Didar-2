@@ -9,7 +9,7 @@ import { useToast } from "@/components/toast";
 import { AlertTriangle, CheckCircle, ShieldAlert } from "lucide-react";
 
 export default function InventoryDiscrepanciesPage() {
-  const platform = usePlatform();
+  const platform = usePlatform() as any;
   const rawDiscs = platform.discrepancies || [];
   const resolveDiscrepancy = platform.resolveDiscrepancy;
   const { toast } = useToast();
@@ -33,14 +33,14 @@ export default function InventoryDiscrepanciesPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="کل موارد مغایرت" value={formatNumber(rawDiscs.length)} />
-        <Stat label="مغایرت‌های باز" value={formatNumber(rawDiscs.filter((d) => d.status === "open").length)} hint="نیازمند بررسی مدیر انبار" />
-        <Stat label="حل شده" value={formatNumber(rawDiscs.filter((d) => d.status === "resolved").length)} />
+        <Stat label="مغایرت‌های باز" value={formatNumber(rawDiscs.filter((d: any) => d.status === "open").length)} hint="نیازمند بررسی مدیر انبار" />
+        <Stat label="حل شده" value={formatNumber(rawDiscs.filter((d: any) => d.status === "resolved").length)} />
       </div>
 
       <Panel className="p-4">
         <DataTable
           headers={["شناسه طلا DDR", "وزن متداول", "وزن سنجش‌شده", "اختلاف (گرم)", "علت", "وضعیت", "عملیات"]}
-          rows={rawDiscs.map((d) => [
+          rows={rawDiscs.map((d: any) => [
             <span key={`${d.id}-u`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
               {d.uid}
             </span>,
