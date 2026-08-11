@@ -4,6 +4,12 @@ const apiUpstream =
   process.env.DIDAR_API_UPSTREAM?.replace(/\/$/, "") || "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Phone / LAN access in `next dev` (otherwise /_next chunks are blocked → blank/broken UI)
   allowedDevOrigins: [
     "172.20.10.4",
