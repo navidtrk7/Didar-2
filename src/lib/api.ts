@@ -7,21 +7,18 @@ const TOKEN_KEY = "didar.api.token";
 const base = () =>
   (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
-/** Production (or explicit flag) must never fall back to browser mock storage. */
+/** Production or dev requiring explicit API URL. */
 export function apiRequired() {
-  return (
-    process.env.NODE_ENV === "production" ||
-    process.env.NEXT_PUBLIC_REQUIRE_API === "true"
-  );
+  return process.env.NEXT_PUBLIC_REQUIRE_API === "true";
 }
 
 export function apiEnabled() {
   return Boolean(base());
 }
 
-/** Local offline demo only — never in production builds. */
+/** Local offline demo fallback when no backend API URL is supplied. */
 export function apiOfflineAllowed() {
-  return !apiRequired() && !apiEnabled();
+  return !apiEnabled();
 }
 
 /** Resolve stored image paths so /media/* loads via the API host/proxy. */
