@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   // Phone / LAN access in `next dev` (otherwise /_next chunks are blocked → blank/broken UI)
   allowedDevOrigins: [
     "172.20.10.4",
