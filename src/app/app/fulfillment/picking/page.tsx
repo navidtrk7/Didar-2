@@ -9,7 +9,9 @@ import { useToast } from "@/components/toast";
 import { Package, CheckSquare } from "lucide-react";
 
 export default function FulfillmentPickingPage() {
-  const { fulfillmentTasks = [], advanceFulfillmentTask } = usePlatform();
+  const platform = usePlatform() as any;
+  const fulfillmentTasks = platform.fulfillmentTasks || [];
+  const advanceFulfillmentTask = platform.advanceFulfillmentTask || (async () => {});
   const tasks = fulfillmentTasks || [];
   const { toast } = useToast();
 
@@ -31,14 +33,14 @@ export default function FulfillmentPickingPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="کل ماموریت‌های پکینگ" value={formatNumber(tasks.length)} />
-        <Stat label="در حال برداشت" value={formatNumber(tasks.filter((t) => t.status === "picking").length)} hint="نیاز به تایید انباردار" />
-        <Stat label="آماده تحویل به ایجنت" value={formatNumber(tasks.filter((t) => t.status === "handover").length)} />
+        <Stat label="در حال برداشت" value={formatNumber(tasks.filter((t: any) => t.status === "picking").length)} hint="نیاز به تایید انباردار" />
+        <Stat label="آماده تحویل به ایجنت" value={formatNumber(tasks.filter((t: any) => t.status === "handover").length)} />
       </div>
 
       <Panel className="p-4">
         <DataTable
           headers={["کد مرجع سفارش", "گیرنده / گالری", "شناسه طلا DDR", "وضعیت پکینگ", "عملیات برداشت"]}
-          rows={tasks.map((t) => [
+          rows={tasks.map((t: any) => [
             <span key={`${t.id}-ord`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
               {t.orderId}
             </span>,
