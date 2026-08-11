@@ -101,3 +101,5 @@ uvicorn app.main:app --reload --port 8000
 Next.js · TypeScript · Tailwind · Framer Motion · Lucide · PWA · FastAPI · Postgres · JWT
 
 فونت برند: **Doran**
+
+<!-- trigger vercel build -->
