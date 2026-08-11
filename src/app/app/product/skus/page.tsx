@@ -30,14 +30,15 @@ export default function ProductSkusPage() {
     }
     try {
       await addSku({
-        code: skuCode.trim(),
+        skuCode: skuCode.trim(),
         name: name.trim(),
         catalogWeight: Number(weight),
-        karat: Number(karat),
-        category,
-        wageFee: Number(wageFee),
+        karat: (Number(karat) || 18) as 18 | 21 | 22 | 24,
+        category: (category as any) || "ring",
+        collection: "اصلی",
+        imageUrl: "",
         status: "awaiting_qc",
-      });
+      } as any);
       toast("محصول جدید ایجاد و به صف QC ارسال گردید");
       setModalOpen(false);
       setSkuCode("");
@@ -71,7 +72,7 @@ export default function ProductSkusPage() {
           headers={["کد SKU", "نام محصول", "دسته‌بندی", "وزن کاتالوگ", "عیار", "وضعیت"]}
           rows={skus.map((s) => [
             <span key={`${s.id}-c`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
-              {s.code}
+              {s.skuCode || (s as any).code}
             </span>,
             s.name,
             s.category || "طلا",
