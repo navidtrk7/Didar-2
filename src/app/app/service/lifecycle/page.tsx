@@ -8,7 +8,8 @@ import { DataTable } from "@/components/data-table";
 import { Search, History, ShieldCheck, UserCheck } from "lucide-react";
 
 export default function ServiceLifecyclePage() {
-  const { sealedItems } = usePlatform();
+  const platform = usePlatform() as any;
+  const sealedItems = platform.sealedItems || platform.issuedAssets || [];
   const [searchUid, setSearchUid] = useState("DDR-18K-7532-009");
 
   const sampleHistory = [
