@@ -10,7 +10,9 @@ import { useToast } from "@/components/toast";
 import { KeyRound, ShieldCheck, Truck } from "lucide-react";
 
 export default function FulfillmentDeliveriesPage() {
-  const { fulfillmentTasks = [], confirmOtpDelivery } = usePlatform();
+  const platform = usePlatform() as any;
+  const fulfillmentTasks = platform.fulfillmentTasks || [];
+  const confirmOtpDelivery = platform.confirmOtpDelivery || (async () => {});
   const tasks = fulfillmentTasks || [];
   const { toast } = useToast();
 
@@ -44,14 +46,14 @@ export default function FulfillmentDeliveriesPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="تعداد ماموریت‌های تحویل" value={formatNumber(tasks.length)} />
-        <Stat label="منتظر رمز یکبارمصرف (OTP)" value={formatNumber(tasks.filter((t) => t.status === "awaiting_otp").length)} hint="نیاز به وارد کردن کد خریدار" />
-        <Stat label="تحویل و تکمیل شده" value={formatNumber(tasks.filter((t) => t.status === "completed").length)} />
+        <Stat label="منتظر رمز یکبارمصرف (OTP)" value={formatNumber(tasks.filter((t: any) => t.status === "awaiting_otp").length)} hint="نیاز به وارد کردن کد خریدار" />
+        <Stat label="تحویل و تکمیل شده" value={formatNumber(tasks.filter((t: any) => t.status === "completed").length)} />
       </div>
 
       <Panel className="p-4">
         <DataTable
           headers={["کد مرجع سفارش", "تحویل گیرنده", "شناسه طلا DDR", "وضعیت تحویل", "تایید OTP"]}
-          rows={tasks.map((t) => [
+          rows={tasks.map((t: any) => [
             <span key={`${t.id}-ord`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
               {t.orderId}
             </span>,
