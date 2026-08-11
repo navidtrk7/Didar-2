@@ -10,16 +10,16 @@ import { useToast } from "@/components/toast";
 import { Briefcase, Plus, Send, ShieldCheck } from "lucide-react";
 
 export default function InventoryAllocationsPage() {
-  const platform = usePlatform();
+  const platform = usePlatform() as any;
   const rawSealed = platform.sealedItems || [];
   const rawIssued = platform.issuedAssets || [];
 
   const items = rawSealed.length > 0
     ? rawSealed
-    : rawIssued.map((a) => ({
+    : rawIssued.map((a: any) => ({
         uid: a.uid,
         weight: a.weightGrams || 2.15,
-        skuName: a.skuName || "طلا ۱۸ عیار",
+        skuName: a.skuName || a.name || "طلا ۱۸ عیار",
       }));
 
   const { toast } = useToast();
@@ -55,7 +55,7 @@ export default function InventoryAllocationsPage() {
       <Panel className="p-4">
         <DataTable
           headers={["ایجنت مسئول", "منطقه", "شناسه طلا DDR", "وزن تخصیصی", "تاریخ تخصیص", "وضعیت"]}
-          rows={items.map((item, idx) => [
+          rows={items.map((item: any, idx: number) => [
             idx % 2 === 0 ? "نوید محمدی" : "رضا کریمی",
             idx % 2 === 0 ? "منطقه ۱ (شمال)" : "بازار بزرگ طلا",
             <span key={`${item.uid}-u`} className="font-mono text-xs text-amber-600 font-bold" data-ltr>
@@ -88,7 +88,7 @@ export default function InventoryAllocationsPage() {
 
           <Field label="شناسه طلا (UID DDR)">
             <select className="field min-h-11 font-mono" value={selectedUid} onChange={(e) => setSelectedUid(e.target.value)}>
-              {items.map((item) => (
+              {items.map((item: any) => (
                 <option key={item.uid} value={item.uid}>
                   {item.uid} — ({item.skuName || "طلا ۱۸ عیار"})
                 </option>
