@@ -8,7 +8,8 @@ import { useToast } from "@/components/toast";
 import { ShoppingCart, Eye, Sparkles } from "lucide-react";
 
 export default function CommerceCatalogPage() {
-  const { skus, goldPrice18k } = usePlatform();
+  const { skus, liveGoldPrice } = usePlatform();
+  const goldPrice18k = liveGoldPrice;
   const { toast } = useToast();
 
   const handleOrder = (name: string) => {
@@ -24,12 +25,12 @@ export default function CommerceCatalogPage() {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {skus.map((sku) => {
-          const estimatedPrice = (sku.catalogWeight || 2.5) * (goldPrice18k || 4350000) + (sku.wageFee || 150000);
+          const estimatedPrice = (sku.catalogWeight || 2.5) * (goldPrice18k || 4350000) + ((sku as any).wageFee || 150000);
           return (
             <Panel key={sku.id} className="p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/50 transition-colors">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-amber-600 font-bold" data-ltr>{sku.code}</span>
+                  <span className="font-mono text-xs text-amber-600 font-bold" data-ltr>{sku.skuCode || (sku as any).code}</span>
                   <Badge tone="gold">{sku.karat || 18} عیار</Badge>
                 </div>
                 <h3 className="font-bold text-base text-[var(--ink)]">{sku.name}</h3>
