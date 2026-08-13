@@ -4,6 +4,7 @@ const apiUpstream =
   process.env.DIDAR_API_UPSTREAM?.replace(/\/$/, "") || "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   typescript: {
     ignoreBuildErrors: true,
   },

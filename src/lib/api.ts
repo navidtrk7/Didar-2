@@ -91,6 +91,14 @@ async function api<T>(
     } catch {
       /* ignore */
     }
+    if (res.status === 401 && auth) {
+      setToken(null);
+      try {
+        window.localStorage.removeItem("didar.session.user");
+      } catch {
+        /* ignore */
+      }
+    }
     throw new Error(detail || `API ${res.status}`);
   }
   if (res.status === 204) return undefined as T;

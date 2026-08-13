@@ -247,13 +247,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             writeStoredApiUser(mapped);
             if (!cancelled) applyUser(mapped);
           } catch {
-            if (stored) {
-              if (!cancelled) applyUser(stored);
-            } else {
-              setToken(null);
-              writeStoredApiUser(null);
-              if (!cancelled) applyUser(null);
-            }
+            // Invalid/expired JWT (e.g. after server migrate) — force clean re-login
+            setToken(null);
+            writeStoredApiUser(null);
+            if (!cancelled) applyUser(null);
           }
         }
         if (!cancelled) setReady(true);

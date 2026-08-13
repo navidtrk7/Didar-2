@@ -7,7 +7,7 @@ import { usePlatform } from "@/context/platform-context";
 import { formatNumber, formatMoney } from "@/lib/utils";
 import { resolveGoldRate } from "@/lib/gold-rate";
 import { SectionHeader, Stat, Panel, Badge } from "@/components/ui";
-import { SIDEBAR_DOMAINS } from "@/data/sidebarConfig";
+import { filterSidebarForRole } from "@/data/sidebarConfig";
 import {
   Users,
   Package,
@@ -37,8 +37,9 @@ const DOMAIN_ICONS: Record<string, React.ElementType> = {
 
 export default function ExecutiveOverviewPage() {
   const { user, role } = useSession();
-  const { skus, qcQueue, liveGoldPrice, settings } = usePlatform();
+  const { skus, qcQueue, liveGoldPrice } = usePlatform();
   const currentRate = resolveGoldRate(liveGoldPrice);
+  const allowedDomains = filterSidebarForRole(role);
 
   const pendingQc = qcQueue.filter((q) => !q.result).length;
   const totalSkus = skus.length;
@@ -47,7 +48,7 @@ export default function ExecutiveOverviewPage() {
     <div className="space-y-8">
       <SectionHeader
         title="داشبورد اجرایی (Executive Overview)"
-        description={`سلام ${user?.name || ""} — نمای تجمیعی سیستم عملیاتی دیدار گلد و دسترسی به ۱۰ دامنه اصلی.`}
+        description={`سلام ${user?.name || ""} — نمای تجمیعی دامنه‌هایی که با نقش فعال شما در دسترس است.`}
       />
 
       {/* Main Pulse Stats */}
@@ -58,11 +59,13 @@ export default function ExecutiveOverviewPage() {
         <Stat label="نقش فعال" value={role || "کاربر"} hint="سطح دسترسی دامنه‌ها" />
       </div>
 
-      {/* 10 Domains Grid */}
+      {/* Domains the active role can open */}
       <div className="space-y-4">
-        <h2 className="text-lg font-bold text-[var(--ink)]">دامنه‌های عملیاتی سیستم (۱۰ دامنه)</h2>
+        <h2 className="text-lg font-bold text-[var(--ink)]">
+          دامنه‌های در دسترس ({allowedDomains.length})
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {SIDEBAR_DOMAINS.map((domain) => {
+          {allowedDomains.map((domain) => {
             const Icon = DOMAIN_ICONS[domain.id] || Boxes;
             return (
               <Panel key={domain.id} className="p-4 flex flex-col justify-between hover:border-amber-500/40 transition-colors group">

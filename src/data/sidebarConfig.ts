@@ -1,8 +1,15 @@
+import {
+  isParkedPath,
+  roleHasPermission,
+  type DomainPermission,
+} from "./domains";
+import type { RoleId } from "./types";
+
 export interface SidebarSubItem {
   id: string;
   label: string;
   href: string;
-  requiredPermission?: string;
+  requiredPermission?: DomainPermission;
   badge?: string;
 }
 
@@ -11,14 +18,14 @@ export interface SidebarDomainItem {
   label: string;
   href: string;
   iconName: string;
-  requiredPermission: string;
+  requiredPermission: DomainPermission;
   subItems: SidebarSubItem[];
 }
 
 export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   {
     id: "network",
-    label: "۱. شبکه",
+    label: "شبکه",
     href: "/app/network",
     iconName: "Users",
     requiredPermission: "network.view",
@@ -31,7 +38,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "product",
-    label: "۲. محصول",
+    label: "محصول",
     href: "/app/product",
     iconName: "Package",
     requiredPermission: "product.view",
@@ -45,7 +52,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "inventory",
-    label: "۳. موجودی و UID",
+    label: "موجودی و UID",
     href: "/app/inventory",
     iconName: "Boxes",
     requiredPermission: "inventory.view",
@@ -59,7 +66,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "commerce",
-    label: "۴. تجارت",
+    label: "تجارت",
     href: "/app/commerce",
     iconName: "ShoppingCart",
     requiredPermission: "commerce.view",
@@ -72,7 +79,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "fulfillment",
-    label: "۵. تحقق سفارش",
+    label: "تحقق سفارش",
     href: "/app/fulfillment",
     iconName: "Truck",
     requiredPermission: "fulfillment.view",
@@ -85,7 +92,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "finance",
-    label: "۶. مالی",
+    label: "مالی",
     href: "/app/finance",
     iconName: "CreditCard",
     requiredPermission: "finance.view",
@@ -99,20 +106,20 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "service",
-    label: "۷. خدمات و چرخه عمر",
+    label: "خدمات و چرخه عمر",
     href: "/app/service",
     iconName: "ShieldCheck",
     requiredPermission: "service.view",
     subItems: [
       { id: "warranty", label: "گارانتی و وارانتی", href: "/app/service/warranty", requiredPermission: "service.warranty" },
-      { id: "returns", label: "مرجوعی", href: "/app/service/returns", requiredPermission: "service.view" },
-      { id: "buyback", label: "بازخرید طلا", href: "/app/service/buyback", requiredPermission: "service.view" },
+      { id: "returns", label: "مرجوعی", href: "/app/service/returns", requiredPermission: "service.lifecycle" },
+      { id: "buyback", label: "بازخرید طلا", href: "/app/service/buyback", requiredPermission: "service.lifecycle" },
       { id: "lifecycle", label: "تاریخچه مالکیت UID", href: "/app/service/lifecycle", requiredPermission: "service.lifecycle" },
     ],
   },
   {
     id: "relationship",
-    label: "۸. مشتری و ارتباطات",
+    label: "مشتری و ارتباطات",
     href: "/app/relationship",
     iconName: "UserCheck",
     requiredPermission: "relationship.view",
@@ -125,7 +132,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "intelligence",
-    label: "۹. داده و هوش تجاری",
+    label: "داده و هوش تجاری",
     href: "/app/intelligence",
     iconName: "BarChart3",
     requiredPermission: "intelligence.view",
@@ -138,7 +145,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
   },
   {
     id: "governance",
-    label: "۱۰. تنظیمات مدیریتی",
+    label: "تنظیمات مدیریتی",
     href: "/app/governance",
     iconName: "ShieldAlert",
     requiredPermission: "governance.view",
@@ -151,3 +158,21 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
     ],
   },
 ];
+
+/** Domains + sub-items the active role may open (parked routes stay hidden). */
+export function filterSidebarForRole(
+  role: RoleId | null | undefined,
+): SidebarDomainItem[] {
+  return SIDEBAR_DOMAINS.flatMap((domain) => {
+    if (isParkedPath(domain.href)) return [];
+    if (!roleHasPermission(role, domain.requiredPermission)) return [];
+
+    const subItems = domain.subItems.filter((sub) => {
+      if (isParkedPath(sub.href)) return false;
+      if (!sub.requiredPermission) return true;
+      return roleHasPermission(role, sub.requiredPermission);
+    });
+
+    return [{ ...domain, subItems }];
+  });
+}

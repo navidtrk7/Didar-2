@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,7 +18,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { useSession } from "@/context/session-context";
-import { SIDEBAR_DOMAINS, type SidebarDomainItem } from "@/data/sidebarConfig";
+import { filterSidebarForRole } from "@/data/sidebarConfig";
 import { cn } from "@/lib/utils";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -36,36 +36,22 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 export function AppSidebar({ className, onItemClick }: { className?: string; onItemClick?: () => void }) {
   const pathname = usePathname();
-  const { role, user } = useSession();
+  const { role } = useSession();
   const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({});
+  const allowedDomains = useMemo(() => filterSidebarForRole(role), [role]);
 
   // Auto-expand domain matching current pathname
   useEffect(() => {
-    SIDEBAR_DOMAINS.forEach((domain) => {
+    allowedDomains.forEach((domain) => {
       if (pathname === domain.href || pathname.startsWith(domain.href + "/")) {
         setExpandedDomains((prev) => ({ ...prev, [domain.id]: true }));
       }
     });
-  }, [pathname]);
+  }, [pathname, allowedDomains]);
 
   const toggleExpand = (domainId: string) => {
     setExpandedDomains((prev) => ({ ...prev, [domainId]: !prev[domainId] }));
   };
-
-  // Filter domains based on user role (Admin sees all 10)
-  const allowedDomains = SIDEBAR_DOMAINS.filter((domain) => {
-    if (role === "admin") return true;
-    // Map requiredPermission check
-    if (role === "warehouse" && ["product", "inventory", "fulfillment"].includes(domain.id)) return true;
-    if (role === "agent" && ["network", "inventory", "commerce", "fulfillment", "relationship"].includes(domain.id)) return true;
-    if (role === "finance" && ["network", "inventory", "commerce", "finance", "service", "intelligence"].includes(domain.id)) return true;
-    if (role === "qc" && ["product"].includes(domain.id)) return true;
-    if (role === "producer" && ["product", "network"].includes(domain.id)) return true;
-    if (role === "pricing" && ["commerce", "product"].includes(domain.id)) return true;
-    if (role === "retailer" && ["commerce", "finance", "service"].includes(domain.id)) return true;
-    if (role === "customer" && ["service"].includes(domain.id)) return true;
-    return true;
-  });
 
   return (
     <aside className={cn("flex flex-col h-full bg-slate-900 border-l border-slate-800 text-slate-200 w-64 overflow-y-auto select-none", className)}>
