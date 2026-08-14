@@ -1,2 +1,5 @@
 import { redirect } from "next/navigation";
-export default function QcRedirect() { redirect("/app/product"); }
+
+export default function QcRedirect() {
+  redirect("/app/product/qc");
+}

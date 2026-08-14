@@ -130,6 +130,87 @@ def update_my_profile(
     return {"status": "ok", "message": "پروفایل با موفقیت بروزرسانی شد"}
 
 
+@governance_router.get("/profile/users/{user_id}")
+def get_user_profile(
+    user_id: str,
+    db: Session = Depends(get_db),
+    _actor: User = Depends(require_permission("governance.view")),
+):
+    target_user = db.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="کاربر یافت نشد")
+    org = db.get(Organization, target_user.org_id) if target_user.org_id else None
+    prof = dict(target_user.organization.profile or {}) if target_user.organization else {}
+    user_prof = dict(getattr(target_user, "profile_data", None) or prof)
+    
+    memberships = [
+        {
+            "id": m.id,
+            "org_id": m.org_id,
+            "org_name": m.organization.name if m.organization else "مجموعه",
+            "kind": m.organization.kind if m.organization else "internal",
+            "title": m.title,
+            "status": m.status,
+        }
+        for m in (target_user.memberships or [])
+    ]
+
+    return {
+        "id": target_user.id,
+        "name": target_user.name,
+        "username": target_user.username,
+        "email": target_user.email,
+        "role": target_user.role,
+        "org_id": target_user.org_id,
+        "org_name": org.name if org else "",
+        "status": target_user.status,
+        "last_active": target_user.last_active_label or "امروز",
+        "national_id": user_prof.get("national_id") or (org.national_id if org else ""),
+        "father_name": user_prof.get("father_name", "محمد"),
+        "birth_date": user_prof.get("birth_date", "۱۳۶۸/۰۵/۱۲"),
+        "gender": user_prof.get("gender", "مرد"),
+        "phone": user_prof.get("phone") or (org.phone if org else ""),
+        "address": user_prof.get("address") or (org.address if org else ""),
+        "postal_code": user_prof.get("postal_code", "۱۹۳۹۵-۴۱۱"),
+        "union_license": user_prof.get("union_license") or (org.union_license if org else ""),
+        "verification_status": user_prof.get("verification_status", "verified"),
+        "memberships": memberships,
+        "profile_data": user_prof,
+    }
+
+
+@governance_router.put("/profile/users/{user_id}")
+def update_user_profile(
+    user_id: str,
+    body: ProfileUpdateIn,
+    db: Session = Depends(get_db),
+    _actor: User = Depends(require_permission("governance.users")),
+):
+    target_user = db.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="کاربر یافت نشد")
+    if body.name:
+        target_user.name = body.name.strip()
+    if body.email:
+        target_user.email = body.email.strip()
+
+    current_prof = dict(getattr(target_user, "profile_data", None) or {})
+    if body.national_id is not None: current_prof["national_id"] = body.national_id
+    if body.father_name is not None: current_prof["father_name"] = body.father_name
+    if body.birth_date is not None: current_prof["birth_date"] = body.birth_date
+    if body.gender is not None: current_prof["gender"] = body.gender
+    if body.phone is not None: current_prof["phone"] = body.phone
+    if body.address is not None: current_prof["address"] = body.address
+    if body.postal_code is not None: current_prof["postal_code"] = body.postal_code
+    if body.union_license is not None: current_prof["union_license"] = body.union_license
+    if body.verification_status is not None: current_prof["verification_status"] = body.verification_status
+    if body.profile_data: current_prof.update(body.profile_data)
+
+    db.commit()
+    db.refresh(target_user)
+    return {"status": "ok", "message": "پروفایل کاربر با موفقیت بروزرسانی شد"}
+
+
 @governance_router.get("/audit")
 def audit_tail(
     db: Session = Depends(get_db),

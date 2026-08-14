@@ -45,6 +45,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
     subItems: [
       { id: "skus", label: "تعریف محصول و SKU", href: "/app/product/skus", requiredPermission: "product.view" },
       { id: "collections", label: "کالکشن‌ها", href: "/app/product/collections", requiredPermission: "product.view" },
+      { id: "designs", label: "طرح‌ها و قالب‌ها", href: "/app/product/designs", requiredPermission: "product.view" },
       { id: "gallery", label: "مدیریت تصاویر", href: "/app/product/gallery", requiredPermission: "product.view" },
       { id: "qc", label: "کنترل کیفیت QC", href: "/app/product/qc", requiredPermission: "product.qc_approve", badge: "QC" },
       { id: "approvals", label: "تأیید نهایی ورود", href: "/app/product/approvals", requiredPermission: "product.qc_approve" },
@@ -152,6 +153,7 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
     subItems: [
       { id: "users", label: "مدیریت کاربران", href: "/app/governance/users", requiredPermission: "governance.users" },
       { id: "profile", label: "پروفایل - Profile Management", href: "/app/governance/profile", requiredPermission: "governance.view" },
+      { id: "shortcuts", label: "مدیریت میانبرها", href: "/app/governance/shortcuts", requiredPermission: "governance.users" },
       { id: "roles", label: "مدیریت نقش‌ها", href: "/app/governance/roles", requiredPermission: "governance.users" },
       { id: "permissions", label: "سطوح دسترسی", href: "/app/governance/permissions", requiredPermission: "governance.users" },
       { id: "audit", label: "گزارش فعالیت", href: "/app/governance/audit", requiredPermission: "governance.audit" },

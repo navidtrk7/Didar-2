@@ -97,6 +97,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   /** Shared docs — any signed-in role. */
   const helpOk = pathname === "/app/help" || pathname.startsWith("/app/help/");
 
+  /** Home & My Space — any signed-in role. */
+  const mySpaceOk =
+    pathname === "/app" ||
+    pathname === "/app/" ||
+    pathname === "/app/me" ||
+    pathname.startsWith("/app/me/");
+
   /** Admin may open retailer/agent channel tools for support. */
   const adminChannelOk =
     isAdmin &&
@@ -110,6 +117,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     !domain &&
     !legacyTarget &&
     !helpOk &&
+    !mySpaceOk &&
     (pathRole === role || adminChannelOk);
 
   const wrongRole = Boolean(
@@ -120,15 +128,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       !domain &&
       !legacyTarget &&
       !helpOk &&
+      !mySpaceOk &&
       pathRole !== role &&
       !adminChannelOk,
   );
-
-  const needsHomeRedirect =
-    ready &&
-    isAuthenticated &&
-    role &&
-    (pathname === "/app" || pathname === "/app/");
 
   /** Sensitive tools: hide by redirect — don’t leave dead-end permission toasts. */
   const toolDenied =
@@ -136,6 +139,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     isAuthenticated &&
     Boolean(role) &&
     !helpOk &&
+    !mySpaceOk &&
     !legacyTarget &&
     pathPermissionDenied(role, pathname);
 
@@ -145,10 +149,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     Boolean(role) &&
     Boolean(user) &&
     !wrongRole &&
-    !needsHomeRedirect &&
     !legacyTarget &&
     !toolDenied &&
-    (domainAllowed || roleChannelOk || helpOk);
+    (domainAllowed || roleChannelOk || helpOk || mySpaceOk);
 
   useEffect(() => {
     if (!ready) return;
@@ -202,15 +205,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace(homePathForRole(role));
       return;
     }
-
-    if (needsHomeRedirect && role) {
-      router.replace(homePathForRole(role));
-    }
   }, [
     ready,
     needsLogin,
     wrongRole,
-    needsHomeRedirect,
     legacyTarget,
     toolDenied,
     domain,

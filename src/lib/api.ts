@@ -191,6 +191,10 @@ export const didarApi = {
   getMyProfile: () => api<Record<string, unknown>>("/governance/profile/me"),
   updateMyProfile: (body: Record<string, unknown>) =>
     api("/governance/profile/me", { method: "PUT", json: body }),
+  getUserProfile: (userId: string) =>
+    api<Record<string, unknown>>(`/governance/profile/users/${userId}`),
+  updateUserProfile: (userId: string, body: Record<string, unknown>) =>
+    api(`/governance/profile/users/${userId}`, { method: "PUT", json: body }),
   assignMembership: (orgId: string, userId: string, title: string) =>
     api(`/network/parties/${orgId}/memberships`, {
       method: "POST",

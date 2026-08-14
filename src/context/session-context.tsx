@@ -92,27 +92,7 @@ function writeStoredActiveRole(role: RoleId | null) {
 }
 
 export function homePathForRole(role: RoleId) {
-  switch (role) {
-    case "warehouse":
-      return "/app/inventory";
-    case "qc":
-    case "producer":
-      return "/app/product";
-    case "pricing":
-      return "/app/commerce";
-    case "customer":
-      return "/app/service";
-    case "finance":
-      return "/app/finance";
-    case "agent":
-      return "/app/commerce";
-    case "retailer":
-      return "/app/commerce";
-    case "admin":
-      return "/app/admin";
-    default:
-      return `/app/${role}`;
-  }
+  return "/app";
 }
 
 function normalizeLogin(value: string) {
