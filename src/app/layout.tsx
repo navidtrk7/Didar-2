@@ -3,27 +3,32 @@ import localFont from "next/font/local";
 import { SessionProvider } from "@/context/session-context";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { PlatformProvider } from "@/context/platform-context";
+import { ThemeProvider } from "@/context/theme-context";
 import { ToastProvider } from "@/components/toast";
 import { PwaRegister } from "@/components/pwa-register";
 import { brand } from "@/data/brand";
 import "./globals.css";
 
-/** فونت برند دیدار گلد از didargold.com */
-const doran = localFont({
+/** فونت برند VazirMatn — بهترین فونت فارسی برای UI */
+const vazirMatn = localFont({
   src: [
-    { path: "../../public/fonts/Doran-Light.woff2", weight: "300", style: "normal" },
-    { path: "../../public/fonts/Doran-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/Doran-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/Doran-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Thin.woff2", weight: "100", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Light.woff2", weight: "300", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-ExtraBold.woff2", weight: "800", style: "normal" },
   ],
   variable: "--font-body",
   display: "swap",
 });
 
-const doranDisplay = localFont({
+const vazirMatnDisplay = localFont({
   src: [
-    { path: "../../public/fonts/Doran-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/Doran-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/VazirMatn-ExtraBold.woff2", weight: "800", style: "normal" },
   ],
   variable: "--font-display",
   display: "swap",
@@ -70,9 +75,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#041E42" },
-    { media: "(prefers-color-scheme: dark)", color: "#041E42" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f1e" },
   ],
-  colorScheme: "light",
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -86,19 +91,21 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       dir="rtl"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${doran.variable} ${doranDisplay.variable} h-full antialiased`}
+      className={`${vazirMatn.variable} ${vazirMatnDisplay.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="flex min-h-full min-h-dvh flex-col font-sans">
-        <SessionProvider>
-          <WorkspaceProvider>
-            <PlatformProvider>
-              <ToastProvider>
-                {children}
-                <PwaRegister />
-              </ToastProvider>
-            </PlatformProvider>
-          </WorkspaceProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <WorkspaceProvider>
+              <PlatformProvider>
+                <ToastProvider>
+                  {children}
+                  <PwaRegister />
+                </ToastProvider>
+              </PlatformProvider>
+            </WorkspaceProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

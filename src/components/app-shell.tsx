@@ -13,10 +13,12 @@ import {
   Gem,
   LayoutDashboard,
   LogOut,
+  Moon,
   Package,
   Settings,
   Shield,
   ShoppingBag,
+  Sun,
   Truck,
   Users,
   Warehouse,
@@ -35,6 +37,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/context/session-context";
 import { useWorkspace } from "@/context/workspace-context";
 import { usePlatform } from "@/context/platform-context";
+import { useTheme } from "@/context/theme-context";
 import { pathPermissionDenied } from "@/data/domains";
 import { roles } from "@/data/mock";
 import { roleLabels } from "@/data/labels";
@@ -178,6 +181,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     useSession();
   const { hats, activeHat, setActivePartyId } = useWorkspace();
   const { error: platformError, ready: platformReady, apiMode } = usePlatform();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
 
   const activeRole = role ?? "retailer";
@@ -267,6 +271,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <GoldTicker className="hidden sm:inline-flex" />
+              {/* دکمه تغییر تم روز/شب */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                title={theme === "dark" ? "تبدیل به حالت روز" : "تبدیل به حالت شب"}
+                aria-label={theme === "dark" ? "حالت روز" : "حالت شب"}
+                className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] shadow-sm transition-all hover:border-[var(--gold)] hover:bg-amber-500/10 hover:text-amber-600"
+              >
+                {theme === "dark" ? (
+                  <Sun size={16} className="text-amber-400" />
+                ) : (
+                  <Moon size={16} />
+                )}
+              </button>
               <Button
                 variant="secondary"
                 className="hidden sm:inline-flex"
