@@ -11,32 +11,40 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 
-type ToastTone = "ok" | "info" | "warn";
+export type ToastTone = "ok" | "info" | "warn" | "success" | "error";
 
 type ToastItem = {
   id: number;
   message: string;
-  tone: ToastTone;
+  tone: "ok" | "info" | "warn";
 };
 
-type ToastContextValue = {
+export type ToastContextValue = {
   toast: (message: string, tone?: ToastTone) => void;
+  push: (message: string, tone?: ToastTone) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
+
+function normalizeTone(tone: ToastTone = "ok"): "ok" | "info" | "warn" {
+  if (tone === "success") return "ok";
+  if (tone === "error") return "warn";
+  return tone;
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
 
   const toast = useCallback((message: string, tone: ToastTone = "ok") => {
     const id = Date.now() + Math.random();
-    setItems((prev) => [...prev, { id, message, tone }]);
+    const normalized = normalizeTone(tone);
+    setItems((prev) => [...prev, { id, message, tone: normalized }]);
     window.setTimeout(() => {
       setItems((prev) => prev.filter((t) => t.id !== id));
     }, 3200);
   }, []);
 
-  const value = useMemo(() => ({ toast }), [toast]);
+  const value = useMemo(() => ({ toast, push: toast }), [toast]);
 
   return (
     <ToastContext.Provider value={value}>

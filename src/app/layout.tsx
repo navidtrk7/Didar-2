@@ -4,6 +4,7 @@ import { SessionProvider } from "@/context/session-context";
 import { WorkspaceProvider } from "@/context/workspace-context";
 import { PlatformProvider } from "@/context/platform-context";
 import { ThemeProvider } from "@/context/theme-context";
+import { CartProvider } from "@/context/cart-context";
 import { ToastProvider } from "@/components/toast";
 import { PwaRegister } from "@/components/pwa-register";
 import { brand } from "@/data/brand";
@@ -98,10 +99,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SessionProvider>
             <WorkspaceProvider>
               <PlatformProvider>
-                <ToastProvider>
-                  {children}
-                  <PwaRegister />
-                </ToastProvider>
+                <CartProvider>
+                  <ToastProvider>
+                    {children}
+                    <PwaRegister />
+                  </ToastProvider>
+                </CartProvider>
               </PlatformProvider>
             </WorkspaceProvider>
           </SessionProvider>

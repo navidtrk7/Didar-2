@@ -37,6 +37,16 @@ export type SessionState = {
   availableRoles: RoleId[];
   setActiveRole: (role: RoleId) => void;
   login: (username: string, password: string) => Promise<LoginResult>;
+  /** ثبت‌نام سریع خرده‌فروش جدید و ورود خودکار */
+  registerRetailer: (data: {
+    name: string;
+    phone: string;
+    storeName: string;
+    province?: string;
+    city?: string;
+    nationalId?: string;
+    password?: string;
+  }) => Promise<LoginResult>;
   /** تعویض سریع حساب */
   switchUser: (userId: string) => Promise<LoginResult>;
   logout: () => void;
@@ -58,6 +68,8 @@ const KNOWN_ROLES: RoleId[] = [
   "finance",
   "customer",
   "producer",
+  "supplier",
+  "courier",
 ];
 
 function normalizeRoles(user: User | null): RoleId[] {
@@ -310,6 +322,54 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [applyUser],
   );
 
+  const registerRetailer = useCallback(
+    async (data: {
+      name: string;
+      phone: string;
+      storeName: string;
+      province?: string;
+      city?: string;
+      nationalId?: string;
+      password?: string;
+    }): Promise<LoginResult> => {
+      const cleanPhone = data.phone.trim().replace(/\s+/g, "");
+      if (!cleanPhone || !data.name.trim() || !data.storeName.trim()) {
+        return { ok: false, error: "نام، شماره تماس و نام فروشگاه الزامی هستند." };
+      }
+
+      const newUserId = `u-ret-${Date.now()}`;
+      const newUser: User = {
+        id: newUserId,
+        name: data.name.trim(),
+        username: cleanPhone,
+        email: `${cleanPhone}@retailer.didar`,
+        password: data.password || "didar123",
+        role: "retailer",
+        roles: ["retailer"],
+        org: data.storeName.trim(),
+        status: "active",
+        lastActive: "هم‌اکنون",
+        avatarHue: Math.floor(Math.random() * 360),
+      };
+
+      // Add to memory users list so switchUser / local lookup works
+      if (!users.some((u) => u.id === newUserId)) {
+        users.push(newUser);
+      }
+
+      try {
+        window.localStorage.setItem(STORAGE_ID_KEY, newUserId);
+        window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(newUser));
+      } catch {
+        /* ignore */
+      }
+
+      applyUser(newUser);
+      return { ok: true, user: newUser };
+    },
+    [applyUser],
+  );
+
   const switchUser = useCallback(
     async (userId: string): Promise<LoginResult> => {
       if (!apiEnabled()) {
@@ -375,11 +435,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       availableRoles,
       setActiveRole,
       login,
+      registerRetailer,
       switchUser,
       logout,
       homePath: role ? homePathForRole(role) : "/enter",
     };
-  }, [ready, user, activeRole, setActiveRole, login, switchUser, logout]);
+  }, [ready, user, activeRole, setActiveRole, login, registerRetailer, switchUser, logout]);
 
   return (
     <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

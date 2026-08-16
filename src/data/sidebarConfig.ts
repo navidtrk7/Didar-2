@@ -30,10 +30,14 @@ export const SIDEBAR_DOMAINS: SidebarDomainItem[] = [
     iconName: "Users",
     requiredPermission: "network.view",
     subItems: [
-      { id: "retailers", label: "خرده‌فروشان", href: "/app/network/retailers", requiredPermission: "network.view" },
-      { id: "producers", label: "تولیدکنندگان", href: "/app/network/producers", requiredPermission: "network.view" },
-      { id: "agents", label: "ایجنت‌ها", href: "/app/network/agents", requiredPermission: "network.view" },
-      { id: "onboarding", label: "درخواست‌های عضویت", href: "/app/network/onboarding", requiredPermission: "network.manage" },
+      { id: "producers", label: "کارخانه و کارگاه", href: "/app/network/producers", requiredPermission: "network.view" },
+      { id: "wholesalers", label: "بنکداران طلا", href: "/app/network/wholesalers", requiredPermission: "network.view" },
+      { id: "retailers", label: "گالری و خرده‌فروشان", href: "/app/network/retailers", requiredPermission: "network.view" },
+      { id: "vaults", label: "خزانه و امانات", href: "/app/network/vaults", requiredPermission: "network.view" },
+      { id: "agents", label: "ایجنت‌های فروش", href: "/app/network/agents", requiredPermission: "network.view" },
+      { id: "partners", label: "خدمات و ترانزیت امن", href: "/app/network/partners", requiredPermission: "network.view" },
+      { id: "customers", label: "تمام مشتریان و طرف‌های شبکه", href: "/app/network/customers", requiredPermission: "network.view" },
+      { id: "onboarding", label: "درخواست‌های عضویت و مدارک", href: "/app/network/onboarding", requiredPermission: "network.manage" },
     ],
   },
   {

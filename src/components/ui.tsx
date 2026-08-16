@@ -226,3 +226,80 @@ export function Field({
     </div>
   );
 }
+
+export function Input({
+  className,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      className={cn(
+        "w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] shadow-sm outline-none transition-all focus:border-[var(--gold-deep)] focus:ring-2 focus:ring-[var(--gold-deep)]/20",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+  size = "md",
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
+}) {
+  if (!open) return null;
+
+  const sizeClasses = {
+    sm: "max-w-sm",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+      <div
+        className={cn(
+          "relative z-10 w-full my-8 rounded-3xl border border-[var(--line)] bg-white p-6 sm:p-7 shadow-2xl text-[var(--ink)] max-h-[90vh] overflow-y-auto",
+          sizeClasses[size],
+        )}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4 mb-5">
+          <div>
+            <h3 className="font-[family-name:var(--font-display)] text-xl sm:text-2xl tracking-tight font-bold">
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="mt-1 text-xs sm:text-sm text-[var(--muted)] leading-relaxed">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl p-2 text-[var(--muted)] hover:bg-[var(--mist)] hover:text-[var(--ink)] transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+

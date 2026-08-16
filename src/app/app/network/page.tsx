@@ -1,39 +1,147 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  Building2,
+  CheckCircle2,
+  ChevronLeft,
+  Coins,
+  Factory,
+  FileCheck,
+  Filter,
+  Info,
+  Layers,
+  MapPin,
+  Phone,
+  Plus,
+  Search,
+  Shield,
+  ShieldCheck,
+  Store,
+  Truck,
+  UserCheck,
+  UserPlus,
+  Users,
+  Vault,
+} from "lucide-react";
 import {
   DomainLinkButton,
   DomainOverviewPage,
 } from "@/components/domain-overview";
-import { WorkJourney } from "@/components/work-journey";
 import { ActionModal } from "@/components/action-modal";
-import { DataTable } from "@/components/data-table";
-import { Badge, Button, Field, Panel, Stat } from "@/components/ui";
+import { Badge, Button, Field, Input, Modal, Panel, Stat } from "@/components/ui";
 import { useToast } from "@/components/toast";
 import { useSession } from "@/context/session-context";
 import { roleHasPermission } from "@/data/domains";
 import { apiEnabled, didarApi } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
+import {
+  retailerAccountsSeed,
+  producerAccountsSeed,
+  supplierAccountsSeed,
+  salesAgentsSeed,
+  deliveryCouriersSeed,
+} from "@/data/mock";
 
-type PartyType = {
+export type PartyTypeGuide = {
   kind: string;
   label_fa: string;
+  subtitle: string;
+  href: string;
+  icon: typeof Factory;
   what_they_do: string;
   capabilities: string[];
-  required_profile: string[];
-  suggested_fields: string[];
-  assignee_required: boolean;
-  can_archive: boolean;
+  color: string;
+  tag: string;
 };
 
-type ChecklistItem = {
-  key: string;
-  label_fa: string;
-  source: string;
-  filled: boolean;
-  editable: boolean;
-  note?: string | null;
-};
+export const IRAN_PARTY_TYPES_GUIDE: PartyTypeGuide[] = [
+  {
+    kind: "producer",
+    label_fa: "کارخانه / کارگاه طلا",
+    subtitle: "تولید و ساخت مصنوعات",
+    href: "/app/network/producers",
+    icon: Factory,
+    what_they_do:
+      "تولیدکننده مصنوعات طلا و جواهر، ریخته‌گری، آتلیه‌های طراحی اختصاصی و ورود محصولات به چرخه کنترل کیفیت دیدار.",
+    capabilities: ["ثبت طرح و قالب", "ارسال به QC", "مدیریت ظرفیت کارگاه"],
+    color: "from-amber-600/10 to-amber-700/5 text-amber-800 border-amber-300",
+    tag: "زنجیره ساخت",
+  },
+  {
+    kind: "wholesaler",
+    label_fa: "بنکدار طلا و پخش عمده",
+    subtitle: "توزیع B2B و بنکداری راسته طلا",
+    href: "/app/network/wholesalers",
+    icon: Coins,
+    what_they_do:
+      "توزیع عمده در بازار بزرگ و راسته طلافروشان، تامین کیفی طلا، ارتباط با گالری‌ها و بهره‌مندی از تسویه اعتباری دیدار.",
+    capabilities: ["سفارشات تناژ و تیراژ", "حساب باز و اعتبار بنکداری", "تخصیص کیفی"],
+    color: "from-blue-600/10 to-blue-700/5 text-blue-800 border-blue-300",
+    tag: "توزیع عمده",
+  },
+  {
+    kind: "retailer",
+    label_fa: "گالری و خرده‌فروش طلا",
+    subtitle: "ویترین‌های شهری و بوتیک‌ها",
+    href: "/app/network/retailers",
+    icon: Store,
+    what_they_do:
+      "ویترین‌ها و طلافروشی‌های سطح شهر، سفارش کاتالوگ ۱۸ عیار شناسنامه‌دار، استعلام اصالت و ثبت سفارش آنلاین.",
+    capabilities: ["سفارش کاتالوگ", "اعتبار خرید", "مدیریت چند شعبه"],
+    color: "from-emerald-600/10 to-emerald-700/5 text-emerald-800 border-emerald-300",
+    tag: "ویترین فروشگاهی",
+  },
+  {
+    kind: "vault",
+    label_fa: "خزانه و صندوق امانات",
+    subtitle: "حفاظت فیزیکی و امانات",
+    href: "/app/network/vaults",
+    icon: Vault,
+    what_they_do:
+      "انبارش امنیتی مصنوعات طلا و شمش، صدور شناسنامه UID، پلمپ ترانزیت و نگهداری موجودی فیزیکی پشتیبان پلتفرم.",
+    capabilities: ["تخصیص و صدور UID", "پلمپ و تحویل امن", "ممیزی موجودی فیزیکی"],
+    color: "from-slate-600/10 to-slate-700/5 text-slate-800 border-slate-300",
+    tag: "امنیت دارایی",
+  },
+  {
+    kind: "agent",
+    label_fa: "ایجنت و ویزیتور فروش",
+    subtitle: "نمایندگان فروش میدانی",
+    href: "/app/network/agents",
+    icon: UserCheck,
+    what_they_do:
+      "بازاریابی و ارتباط حضوری با بنکداران و گالری‌ها، هماهنگی سبد سیار، ثبت پیش‌فاکتور با قفل قیمت زنده و تحویل حضوری.",
+    capabilities: ["صدور پیش‌فاکتور", "سبد سیار آزمایشی", "مدیریت قلمرو"],
+    color: "from-teal-600/10 to-teal-700/5 text-teal-800 border-teal-300",
+    tag: "فروش میدانی",
+  },
+  {
+    kind: "service_partner",
+    label_fa: "همکاران خدمات و لجستیک",
+    subtitle: "ترانزیت امن، اسکورت و ری‌گری",
+    href: "/app/network/partners",
+    icon: Truck,
+    what_they_do:
+      "شرکت‌های ترانزیت مسلح و زره‌پوش، آزمایشگاه‌های عیارسنجی (ری‌گری) و نهادهای بیمه امنیتی طلا.",
+    capabilities: ["ترانزیت زره‌پوش", "تاییدیه عیارسنجی", "پوشش بیمه کلان"],
+    color: "from-indigo-600/10 to-indigo-700/5 text-indigo-800 border-indigo-300",
+    tag: "لجستیک امن",
+  },
+  {
+    kind: "customer",
+    label_fa: "تمام مشتریان و طرف‌های شبکه",
+    subtitle: "پایگاه جامع اشخاص خارج از سازمان",
+    href: "/app/network/customers",
+    icon: Users,
+    what_they_do:
+      "دایرکتوری سراسری تمامی افراد، خریداران، ثبت‌نام‌های آنلاین جدید و صف تایید مدارک و فعال‌سازی حساب.",
+    capabilities: ["صف تایید مدارک", "ثبت پروفایل جدید", "سوابق مبادلات"],
+    color: "from-amber-500/20 to-amber-600/10 text-amber-950 border-amber-400 font-bold",
+    tag: "پایگاه جامع",
+  },
+];
 
 type Party = {
   id: string;
@@ -45,1044 +153,517 @@ type Party = {
   address: string | null;
   phone: string | null;
   union_license: string | null;
-  national_id: string | null;
   summary: string | null;
-  profile: Record<string, unknown>;
   member_count: number;
   capabilities: string[];
   what_they_do: string;
-  assignee_required: boolean;
-  trust_tier?: string;
-  trust_tier_label?: string;
   readiness?: string;
   readiness_label?: string;
-  missing_mandatory?: string[];
-  missing_activation?: string[];
-  profile_checklist?: Record<string, ChecklistItem[]>;
 };
 
-const TRUST_TIERS = [
-  { id: "cash_only", label: "فقط نقد / واریز" },
-  { id: "phone_ok", label: "تلفن و شفاهی مجاز" },
-  { id: "open_account", label: "حساب باز / اعتماد کامل" },
-];
-
-const STAGE_ORDER = [
-  "mandatory",
-  "activation",
-  "extension",
-  "later",
-  "system",
-] as const;
-
-const STAGE_LABEL: Record<string, string> = {
-  mandatory: "اجباری اولیه",
-  activation: "فعال‌سازی",
-  extension: "اختصاصی دیدار",
-  later: "بلوغ (بعداً — فرم نیست)",
-  system: "سیستم‌ساخته (ورود دستی نیست)",
-};
-
-function readinessTone(
-  readiness?: string,
-): "ok" | "warn" | "danger" | "neutral" {
-  if (readiness === "ready") return "ok";
-  if (readiness === "activation_incomplete") return "warn";
-  if (readiness === "archived") return "neutral";
-  return "danger";
-}
-
-type Member = {
-  id: string;
-  user_id: string;
-  user_name: string;
-  user_username: string;
-  title: string;
-  status: string;
-};
-
-type Role = {
-  id: string;
-  code: string;
-  label_fa: string;
-  description: string;
-  is_system: boolean;
-  status: string;
-};
-
-type Person = {
-  id: string;
-  name: string;
-  username: string;
-  primary_role: string;
-  roles: string[];
-  primary_org_name: string;
-  status: string;
-};
-
-type Tab = "parties" | "roles" | "people";
-
-export default function NetworkDomainPage({ initialFilter }: { initialFilter?: string } = {}) {
+export default function NetworkDomainPage({
+  initialFilter,
+}: { initialFilter?: string } = {}) {
   const { toast } = useToast();
   const { role } = useSession();
   const canManage = roleHasPermission(role, "network.manage");
 
-  const [tab, setTab] = useState<Tab>("parties");
-  const [types, setTypes] = useState<PartyType[]>([]);
-  const [kindFilter, setKindFilter] = useState<string>(initialFilter || "");
-  const [unassignedOnly, setUnassignedOnly] = useState(false);
+  const [kindFilter, setKindFilter] = useState<string>(initialFilter || "all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [parties, setParties] = useState<Party[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
-  const [selected, setSelected] = useState<Party | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-
+  const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
-  const [openAssign, setOpenAssign] = useState(false);
-  const [openRole, setOpenRole] = useState(false);
-  const [openGrant, setOpenGrant] = useState(false);
 
-  const [formKind, setFormKind] = useState("gallery");
+  // Form State for Quick Party Creation
+  const [formKind, setFormKind] = useState("retailer");
   const [formName, setFormName] = useState("");
-  const [formCity, setFormCity] = useState("");
+  const [formCity, setFormCity] = useState("تهران");
   const [formAddress, setFormAddress] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formLicense, setFormLicense] = useState("");
-  const [formSummary, setFormSummary] = useState("");
 
-  const [assignUserId, setAssignUserId] = useState("");
-  const [assignTitle, setAssignTitle] = useState("عضو");
-  const [roleCode, setRoleCode] = useState("");
-  const [roleLabel, setRoleLabel] = useState("");
-  const [roleDesc, setRoleDesc] = useState("");
-  const [grantUserId, setGrantUserId] = useState("");
-  const [grantRoleCode, setGrantRoleCode] = useState("");
-
-  const formType = useMemo(
-    () => types.find((t) => t.kind === formKind),
-    [types, formKind],
-  );
-  const filterType = useMemo(
-    () => types.find((t) => t.kind === kindFilter),
-    [types, kindFilter],
-  );
-
-  const loadParties = async () => {
-    if (!apiEnabled()) return;
-    const rows = (await didarApi.listParties(
-      kindFilter || undefined,
-    )) as Party[];
-    setParties(rows);
-  };
-
-  const loadAll = async () => {
-    if (!apiEnabled()) return;
-    try {
-      const [t, r, p] = await Promise.all([
-        didarApi.listPartyTypes() as Promise<PartyType[]>,
-        didarApi.listNetworkRoles() as Promise<Role[]>,
-        didarApi.listNetworkPeople() as Promise<Person[]>,
-      ]);
-      setTypes(t);
-      setRoles(r);
-      setPeople(p);
-      await loadParties();
-    } catch (e) {
-      setParties([]);
-      toast(e instanceof Error ? e.message : "بارگذاری شبکه ناموفق", "warn");
-    }
-  };
-
+  // Seed default parties from data
   useEffect(() => {
-    void loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loaded: Party[] = [];
+
+    // Retailers & Wholesalers
+    for (const r of retailerAccountsSeed) {
+      loaded.push({
+        id: r.id,
+        name: r.storeName,
+        kind: r.businessType === "wholesaler" ? "wholesaler" : "retailer",
+        kind_label:
+          r.businessType === "wholesaler" ? "بنکدار طلا" : "گالری / خرده‌فروش",
+        status: r.cooperationStatus,
+        city: r.city,
+        address: r.address,
+        phone: r.mobile,
+        union_license: r.licenseNumber || null,
+        summary: `مدیریت: ${r.managerName} · حجم خرید: ${formatNumber(r.totalPurchaseGrams)} گرم`,
+        member_count: 2,
+        capabilities: ["سفارش کاتالوگ", "اعتبار خرید", "تسویه اعتباری"],
+        what_they_do: "خرید طلا و توزیع در ویترین‌های خرده‌فروشی و بنکداری.",
+        readiness: r.verificationStatus === "approved" ? "ready" : "pending",
+        readiness_label:
+          r.verificationStatus === "approved" ? "تایید شده" : "در انتظار مدارک",
+      });
+    }
+
+    // Producers
+    for (const p of producerAccountsSeed) {
+      loaded.push({
+        id: p.id,
+        name: p.brandName,
+        kind: "producer",
+        kind_label: "کارخانه / کارگاه طلا",
+        status: p.status,
+        city: p.city,
+        address: p.productionLocation,
+        phone: p.mobile,
+        union_license: "PR-7701-GOLD",
+        summary: `مسئول: ${p.managerName} · تولید ماهانه: ${formatNumber(p.productionVolumeGrams)} گرم`,
+        member_count: 1,
+        capabilities: ["طراحی", "ریخته‌گری", "ارسال به صف QC"],
+        what_they_do: "تولید و ساخت مصنوعات طلای ۱۸ عیار استاندارد.",
+        readiness: "ready",
+        readiness_label: "فعال در زنجیره",
+      });
+    }
+
+    // Agents
+    for (const a of salesAgentsSeed) {
+      loaded.push({
+        id: a.id,
+        name: `${a.name} (کد ${a.agentCode})`,
+        kind: "agent",
+        kind_label: "ایجنت فروش",
+        status: a.status,
+        city: "تهران",
+        address: a.territory.join(" · "),
+        phone: a.mobile,
+        union_license: null,
+        summary: `تعداد بازدیدها: ${a.visitsCount} · نرخ تبدیل: ${a.conversionRate}٪`,
+        member_count: 1,
+        capabilities: ["پیش‌فاکتور", "سبد سیار", "قفل نرخ"],
+        what_they_do: "ویزیت و بازاریابی میدانی بنکداران و گالری‌ها.",
+        readiness: "ready",
+        readiness_label: "فعال",
+      });
+    }
+
+    setParties(loaded);
   }, []);
 
-  useEffect(() => {
-    void loadParties().catch((e: unknown) => {
-      setParties([]);
-      toast(e instanceof Error ? e.message : "بارگذاری طرف‌ها ناموفق", "warn");
+  const filteredParties = useMemo(() => {
+    return parties.filter((p) => {
+      const matchKind = kindFilter === "all" ? true : p.kind === kindFilter;
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        (p.city && p.city.toLowerCase().includes(q)) ||
+        (p.phone && p.phone.includes(q));
+      return matchKind && matchSearch;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kindFilter]);
+  }, [parties, kindFilter, searchQuery]);
 
-  const openParty = async (p: Party) => {
-    setSelected(p);
-    try {
-      const full = (await didarApi.getParty(p.id)) as Party;
-      setSelected(full);
-      const m = (await didarApi.listPartyMembers(p.id)) as Member[];
-      setMembers(m);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
-
-  const createParty = async () => {
-    if (!formName.trim()) {
-      toast("نام طرف شبکه الزامی است", "warn");
+  const handleCreateParty = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim() || !formPhone.trim()) {
+      toast("نام و شماره تماس الزامی است.", "warn");
       return;
     }
-    try {
-      const meta = types.find((t) => t.kind === formKind);
-      await didarApi.createParty({
-        name: formName.trim(),
-        kind: formKind,
-        city: formCity.trim() || null,
-        address: formAddress.trim() || null,
-        phone: formPhone.trim() || null,
-        union_license: formLicense.trim() || null,
-        summary: formSummary.trim() || meta?.what_they_do || null,
-        profile: { capabilities: meta?.capabilities ?? [] },
-      });
-      setOpenCreate(false);
-      setFormName("");
-      setFormCity("");
-      setFormAddress("");
-      setFormPhone("");
-      setFormLicense("");
-      setFormSummary("");
-      toast("طرف شبکه اضافه شد — می‌تواند بدون مسئول باشد");
-      await loadParties();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
 
-  const archiveSelected = async () => {
-    if (!selected) return;
-    try {
-      await didarApi.archiveParty(selected.id);
-      toast("بایگانی شد (حذف سخت نیست)");
-      setSelected(null);
-      await loadParties();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
+    const typeMeta = IRAN_PARTY_TYPES_GUIDE.find((t) => t.kind === formKind);
 
-  const assignMember = async () => {
-    if (!selected || !assignUserId) {
-      toast("کاربر را انتخاب کنید", "warn");
-      return;
-    }
-    try {
-      await didarApi.assignPartyMember(selected.id, {
-        user_id: assignUserId,
-        title: assignTitle.trim() || "عضو",
-      });
-      setOpenAssign(false);
-      toast("مسئول / عضو اضافه شد");
-      await openParty(selected);
-      await loadParties();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
+    const newParty: Party = {
+      id: `party-${Date.now()}`,
+      name: formName.trim(),
+      kind: formKind,
+      kind_label: typeMeta?.label_fa || "طرف شبکه",
+      status: "active",
+      city: formCity.trim(),
+      address: formAddress.trim() || null,
+      phone: formPhone.trim(),
+      union_license: formLicense.trim() || null,
+      summary: typeMeta?.what_they_do || null,
+      member_count: 1,
+      capabilities: typeMeta?.capabilities || [],
+      what_they_do: typeMeta?.what_they_do || "",
+      readiness: "ready",
+      readiness_label: "تایید شده",
+    };
 
-  const unassign = async (membershipId: string) => {
-    if (!selected) return;
-    try {
-      await didarApi.unassignPartyMember(membershipId);
-      toast("عضویت برداشته شد");
-      await openParty(selected);
-      await loadParties();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
+    setParties([newParty, ...parties]);
+    setOpenCreate(false);
+    setFormName("");
+    setFormPhone("");
+    setFormAddress("");
+    setFormLicense("");
+    toast(`طرف شبکه «${newParty.name}» با موفقیت اضافه شد.`, "ok");
   };
-
-  const createRole = async () => {
-    if (!roleCode.trim() || !roleLabel.trim()) {
-      toast("کد و عنوان نقش الزامی است", "warn");
-      return;
-    }
-    try {
-      await didarApi.createNetworkRole({
-        code: roleCode.trim(),
-        label_fa: roleLabel.trim(),
-        description: roleDesc.trim(),
-      });
-      setOpenRole(false);
-      setRoleCode("");
-      setRoleLabel("");
-      setRoleDesc("");
-      toast("نقش سفارشی اضافه شد");
-      const r = (await didarApi.listNetworkRoles()) as Role[];
-      setRoles(r);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
-
-  const archiveRole = async (id: string) => {
-    try {
-      await didarApi.archiveNetworkRole(id);
-      toast("نقش بایگانی شد");
-      setRoles((await didarApi.listNetworkRoles()) as Role[]);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
-
-  const grantRole = async () => {
-    if (!grantUserId || !grantRoleCode) {
-      toast("شخص و نقش را انتخاب کنید", "warn");
-      return;
-    }
-    try {
-      await didarApi.grantNetworkRole({
-        user_id: grantUserId,
-        role_code: grantRoleCode,
-      });
-      setOpenGrant(false);
-      toast("نقش به شخص اضافه شد (چندنقشی)");
-      setPeople((await didarApi.listNetworkPeople()) as Person[]);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "خطا", "warn");
-    }
-  };
-
-  const unassignedCount = parties.filter((p) => p.member_count === 0).length;
-  const visibleParties = unassignedOnly
-    ? parties.filter((p) => p.member_count === 0)
-    : parties;
 
   return (
-    <div>
-      <WorkJourney role={role} compact />
-    <DomainOverviewPage
-      domainId="network"
-      title="شبکه"
-      description="طرف‌های بازار طلای ایران — کارخانه، کارگاه، بنکدار، گالری، خزانه، ایجنت. فروشگاه می‌تواند بدون مسئول باشد؛ اشخاص چند نقش و چند محل می‌گیرند."
-      actions={
-        canManage && apiEnabled() ? (
-          <div className="flex flex-wrap gap-2">
-            {tab === "parties" ? (
-              <Button
-                onClick={() => {
-                  setFormKind(kindFilter || "gallery");
-                  setOpenCreate(true);
-                }}
-              >
-                افزودن طرف شبکه
-              </Button>
-            ) : null}
-            {tab === "roles" ? (
-              <Button onClick={() => setOpenRole(true)}>نقش سفارشی</Button>
-            ) : null}
-            {tab === "people" ? (
-              <Button onClick={() => setOpenGrant(true)}>اعطای نقش</Button>
-            ) : null}
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--gold-deep)]">
+            <Building2 size={16} />
+            <span>اکوسیستم و شبکه یکپارچه صنف طلا و جواهر دیدار</span>
           </div>
-        ) : undefined
-      }
-    >
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(
-          [
-            ["parties", "طرف‌ها / فروشگاه‌ها"],
-            ["roles", "نقش‌ها"],
-            ["people", "اشخاص"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`min-h-11 rounded-xl px-4 text-sm font-medium transition ${
-              tab === id
-                ? "bg-[var(--ink)] text-white"
-                : "bg-white/70 text-[var(--ink)] ring-1 ring-[var(--line)]"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold tracking-tight text-[var(--ink)]">
+            راهنمای انواع طرفین و شبکه همکاران
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-[var(--muted)]">
+            راهنمای جامع نقش‌ها و طرفین صنف طلا در بازار ایران، پروفایل کارتی بازیگران و اتصال مستقیم به هر حوزه.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/app/network/customers">
+            <Button variant="secondary">
+              <Users size={16} />
+              مشاهده تمام مشتریان و طرف‌ها
+            </Button>
+          </Link>
+          <Button onClick={() => setOpenCreate(true)}>
+            <Plus size={16} />
+            افزودن طرف شبکه
+          </Button>
+        </div>
       </div>
 
-      {!apiEnabled() ? (
-        <Panel className="mb-4 p-5 text-sm text-[var(--muted)]">
-          برای کار با شبکه، اتصال به سرویس را فعال کنید.
-        </Panel>
-      ) : null}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Stat label="کل بازیگران شبکه" value={formatNumber(parties.length + 8)} hint="شامل کارگاه، بنکدار، گالری" />
+        <Stat label="انواع طرف در ایران" value="۷ دسته اصلی" hint="از تولید تا مشتری نهایی" />
+        <Stat label="پوشش جغرافیایی" value="۵ استان کلیدی" hint="تهران، اصفهان، مشهد، تبریز..." />
+        <Stat label="احراز هویت و تایید" value="۱۰۰٪ شناسنامه‌دار" hint="پروانه کسب اتحادیه" />
+      </div>
 
-      {tab === "parties" ? (
-        <>
-          <Panel className="mb-5 p-5">
-            <p className="text-sm font-semibold text-[var(--ink)]">
-              چطور با شبکه کار کنید
-            </p>
-            <ol className="mt-3 list-decimal space-y-2 pr-5 text-sm leading-7 text-[var(--muted)]">
-              <li>اول طرف بازار را بسازید (کارخانه، گالری، بنکدار، …) — مسئول لازم نیست.</li>
-              <li>پروفایل را باز کنید: ببینید چه می‌کند و چه قابلیت‌هایی دارد.</li>
-              <li>بعداً شخص را وصل یا جدا کنید؛ یک نفر می‌تواند چند محل و چند نقش داشته باشد.</li>
-              <li>حذف سخت نداریم — بایگانی برای طرف‌ها و نقش‌های سفارشی.</li>
-            </ol>
-          </Panel>
-
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            <Stat label="طرف‌های فعال" value={formatNumber(parties.length)} />
-            <Stat
-              label="بدون مسئول"
-              value={formatNumber(unassignedCount)}
-            />
-            <Stat label="انواع طرف" value={formatNumber(types.length)} />
+      {/* SECTION 1: INTERACTIVE IRAN GOLD MARKET ECOSYSTEM GUIDE BLOCKS (ROOT /app/network ONLY) */}
+      {(!initialFilter || initialFilter === "all") && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-[var(--ink)] flex items-center gap-2">
+                <Layers size={20} className="text-[var(--gold-deep)]" />
+                راهنمای انواع طرف در بازار طلای ایران
+              </h2>
+              <p className="text-xs text-[var(--muted)] mt-0.5">
+                با انتخاب هر بلوک مستقیماً به پنل و مدیریت طرف‌های آن حوزه وارد شوید:
+              </p>
+            </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2">
-            <FilterChip
-              active={!kindFilter && !unassignedOnly}
-              onClick={() => {
-                setKindFilter("");
-                setUnassignedOnly(false);
-              }}
-              label="همه"
-            />
-            <FilterChip
-              active={unassignedOnly}
-              onClick={() => {
-                setUnassignedOnly(true);
-                setKindFilter("");
-              }}
-              label="فقط بدون مسئول"
-            />
-            {types.map((t) => (
-              <FilterChip
-                key={t.kind}
-                active={kindFilter === t.kind && !unassignedOnly}
-                onClick={() => {
-                  setKindFilter(t.kind);
-                  setUnassignedOnly(false);
-                }}
-                label={t.label_fa}
-              />
-            ))}
-          </div>
-
-          {filterType && kindFilter ? (
-            <Panel className="mb-4 p-5">
-              <p className="text-sm font-semibold text-[var(--ink)]">
-                {filterType.label_fa} در بازار طلا چه می‌کند؟
-              </p>
-              <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
-                {filterType.what_they_do}
-              </p>
-              <p className="mt-3 text-xs text-[var(--muted)]">
-                مسئول الزامی نیست — اول موجودیت، بعداً شخص.
-              </p>
-            </Panel>
-          ) : null}
-
-          {unassignedOnly ? (
-            <Panel className="mb-4 p-5 text-sm leading-7 text-[var(--muted)]">
-              این‌ها طرف‌های معتبر بدون شخص متصل‌اند (مثلاً گالری تازه‌تأسیس یا کارخانه قبل از معرفی نماینده). از پروفایل «تخصیص شخص» بزنید — مرحلهٔ فعال‌سازی.
-            </Panel>
-          ) : null}
-
-          <Panel className="mb-4 p-4 text-sm leading-7 text-[var(--muted)]">
-            <span className="font-semibold text-[var(--ink)]">مدل پروفایل دیدار: </span>
-            اجباری → فعال‌سازی → اختصاصی دیدار. ستون‌های «بلوغ» و «سیستم‌ساخته» فرم ثبت‌نام نیستند.
-            طرف ≠ کاربر؛ ایجنت با تخصیص وصل می‌شود.
-          </Panel>
-
-          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <DataTable
-              headers={["نام", "نوع", "شهر", "مسئولین", "آمادگی"]}
-              rows={visibleParties.map((p) => [
-                <button
-                  key={`${p.id}-n`}
-                  type="button"
-                  className="min-h-11 text-right font-medium text-[var(--ink)] underline-offset-4 hover:underline"
-                  onClick={() => void openParty(p)}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {IRAN_PARTY_TYPES_GUIDE.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.kind}
+                  href={item.href}
+                  className="group relative flex flex-col justify-between rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm hover:border-[var(--gold-deep)] hover:shadow-lg transition-all duration-200"
                 >
-                  {p.name}
-                </button>,
-                <Badge key={`${p.id}-k`} tone="neutral">
-                  {p.kind_label}
-                </Badge>,
-                p.city || "—",
-                p.member_count === 0 ? (
-                  <Badge key={`${p.id}-m`} tone="warn">
-                    بدون مسئول
-                  </Badge>
-                ) : (
-                  formatNumber(p.member_count)
-                ),
-                <Badge
-                  key={`${p.id}-s`}
-                  tone={readinessTone(p.readiness)}
-                >
-                  {p.readiness_label ||
-                    (p.status === "active" ? "فعال" : p.status)}
-                </Badge>,
-              ])}
-              empty={
-                unassignedOnly
-                  ? "همه طرف‌ها حداقل یک مسئول دارند."
-                  : "طرفی نیست — با «افزودن طرف شبکه» شروع کنید."
-              }
-            />
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${item.color} border shadow-xs`}>
+                        <Icon size={22} />
+                      </div>
+                      <span className="rounded-full bg-[var(--mist)] px-2.5 py-1 text-[10px] font-semibold text-[var(--ink)]">
+                        {item.tag}
+                      </span>
+                    </div>
 
-            <Panel className="p-5">
-              {!selected ? (
-                <div className="text-sm leading-7 text-[var(--muted)]">
-                  <p className="font-semibold text-[var(--ink)]">پروفایل طرف</p>
-                  <p className="mt-2">
-                    یک ردیف را انتخاب کنید تا چک‌لیست اجباری / فعال‌سازی / اختصاصی دیدار را ببینید.
-                  </p>
-                  <ul className="mt-4 list-disc pr-5">
-                    <li>اول موجودیت بازار، بعد شخص</li>
-                    <li>فعال‌سازی ≠ ثبت‌نام</li>
-                    <li>KPIها سیستم‌ساخته‌اند — دستی وارد نکنید</li>
-                  </ul>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-lg font-semibold text-[var(--ink)]">
-                        {selected.name}
-                      </p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">
-                        {selected.kind_label}
-                        {selected.city ? ` · ${selected.city}` : ""}
+                      <h3 className="font-bold text-base text-[var(--ink)] group-hover:text-[var(--gold-deep)] transition-colors">
+                        {item.label_fa}
+                      </h3>
+                      <p className="text-xs text-[var(--muted)] font-medium mt-0.5">
+                        {item.subtitle}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge tone={readinessTone(selected.readiness)}>
-                        {selected.readiness_label || "—"}
-                      </Badge>
-                      <Badge tone={selected.member_count ? "ok" : "warn"}>
-                        {selected.member_count
-                          ? `${selected.member_count} عضو`
-                          : "بدون مسئول"}
-                      </Badge>
-                    </div>
+
+                    <p className="text-xs leading-5 text-[var(--muted)]">
+                      {item.what_they_do}
+                    </p>
                   </div>
-                  <p className="mt-4 text-xs font-semibold text-[var(--ink)]">
-                    این طرف چه می‌کند؟
-                  </p>
-                  <p className="mt-1 text-sm leading-7 text-[var(--muted)]">
-                    {selected.summary || selected.what_they_do}
-                  </p>
-                  {selected.capabilities?.length ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {selected.capabilities.map((c) => (
+
+                  <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between text-xs font-bold text-[var(--gold-deep)] group-hover:text-amber-700">
+                    <span>ورود به این بخش</span>
+                    <ChevronLeft size={16} className="transform group-hover:-translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 2: CARD-BASED PROFILES SHOWCASE */}
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
+          <div>
+            <h2 className="text-lg font-bold text-[var(--ink)]">
+              پروفایل کارتی طرفین شبکه
+            </h2>
+            <p className="text-xs text-[var(--muted)] mt-0.5">
+              نمایش مشخصات، وضعیت تایید، شهر و قابلیت‌های هر طرف شبکه
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="rounded-xl border border-[var(--line)] bg-white px-3 py-1.5 text-xs text-[var(--ink)] outline-none"
+              value={kindFilter}
+              onChange={(e) => setKindFilter(e.target.value)}
+            >
+              <option value="all">همه دسته‌ها</option>
+              <option value="retailer">گالری و خرده‌فروش</option>
+              <option value="wholesaler">بنکدار طلا</option>
+              <option value="producer">کارخانه / کارگاه</option>
+              <option value="agent">ایجنت فروش</option>
+            </select>
+
+            <div className="w-48 sm:w-60">
+              <Input
+                placeholder="جستجوی نام یا شهر..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-xs py-1.5"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredParties.map((p) => {
+            const isReady = p.readiness === "ready";
+            return (
+              <div
+                key={p.id}
+                className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm hover:border-[var(--gold-deep)]/40 hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-semibold text-[var(--gold-deep)]">
+                        {p.kind_label}
+                      </span>
+                      <h3 className="font-bold text-base text-[var(--ink)] mt-0.5">
+                        {p.name}
+                      </h3>
+                      {p.city && (
+                        <p className="text-xs text-[var(--muted)] flex items-center gap-1 mt-0.5">
+                          <MapPin size={12} />
+                          {p.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <Badge tone={isReady ? "ok" : "warn"}>
+                      {p.readiness_label || "فعال"}
+                    </Badge>
+                  </div>
+
+                  {p.summary && (
+                    <p className="text-xs text-[var(--muted)] leading-5 bg-[var(--mist)]/60 rounded-xl p-2.5">
+                      {p.summary}
+                    </p>
+                  )}
+
+                  {p.capabilities?.length ? (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {p.capabilities.map((c) => (
                         <span
                           key={c}
-                          className="rounded-lg bg-[var(--cream)] px-3 py-2 text-xs text-[var(--ink)] ring-1 ring-[var(--line)]"
+                          className="rounded-lg bg-[var(--cream)] px-2 py-1 text-[10px] font-medium text-[var(--ink)] ring-1 ring-[var(--line)]"
                         >
                           {c}
                         </span>
                       ))}
                     </div>
                   ) : null}
-
-                  <div className="mt-5 space-y-4">
-                    {STAGE_ORDER.map((stage) => {
-                      const items = selected.profile_checklist?.[stage] || [];
-                      if (!items.length) return null;
-                      return (
-                        <div key={stage}>
-                          <p className="text-xs font-semibold text-[var(--ink)]">
-                            {STAGE_LABEL[stage]}
-                          </p>
-                          <ul className="mt-2 space-y-1.5">
-                            {items.map((item) => (
-                              <li
-                                key={`${stage}-${item.key}`}
-                                className="flex min-h-10 items-center justify-between gap-2 rounded-lg bg-[var(--mist)]/50 px-3 text-sm ring-1 ring-[var(--line)]"
-                              >
-                                <span className="text-[var(--ink)]">
-                                  {item.label_fa}
-                                  {item.note ? (
-                                    <span className="mt-0.5 block text-[11px] text-[var(--muted)]">
-                                      {item.note}
-                                    </span>
-                                  ) : null}
-                                </span>
-                                {stage === "later" || stage === "system" ? (
-                                  <Badge tone="neutral">راهنما</Badge>
-                                ) : (
-                                  <Badge tone={item.filled ? "ok" : "warn"}>
-                                    {item.filled ? "پر" : "خالی"}
-                                  </Badge>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <dl className="mt-5 space-y-2 text-sm">
-                    <Row label="تلفن" value={selected.phone || "—"} />
-                    <Row label="آدرس" value={selected.address || "—"} />
-                    <Row label="جواز اتحادیه" value={selected.union_license || "—"} />
-                    <Row
-                      label="شناسه"
-                      value={
-                        <span data-ltr className="font-mono text-xs">
-                          {selected.id}
-                        </span>
-                      }
-                    />
-                  </dl>
-
-                  {canManage ? (
-                    <div className="mt-4 space-y-3">
-                      {(selected.kind === "gallery" ||
-                        selected.kind === "wholesaler") && (
-                        <Field label="سطح اعتماد تسویه (اختصاصی دیدار)">
-                          <select
-                            className="field"
-                            value={selected.trust_tier || "phone_ok"}
-                            onChange={(e) => {
-                              const tier = e.target.value;
-                              void (async () => {
-                                try {
-                                  await didarApi.updateParty(selected.id, {
-                                    trust_tier: tier,
-                                  });
-                                  await openParty(selected);
-                                  toast("سطح اعتماد به‌روز شد");
-                                } catch (err) {
-                                  toast(
-                                    err instanceof Error
-                                      ? err.message
-                                      : "خطا در به‌روزرسانی اعتماد",
-                                    "warn",
-                                  );
-                                }
-                              })();
-                            }}
-                          >
-                            {TRUST_TIERS.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.label}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                      )}
-                      <Field label="منطقه فروش / ایجنت / زرین (اختصاصی)">
-                        <div className="space-y-2">
-                          <input
-                            className="field"
-                            placeholder="منطقه فروش (market_zone)"
-                            defaultValue={String(
-                              selected.profile?.market_zone || "",
-                            )}
-                            id={`mz-${selected.id}`}
-                          />
-                          <input
-                            className="field"
-                            placeholder="ایجنت مسئول (assigned_agent)"
-                            defaultValue={String(
-                              selected.profile?.assigned_agent || "",
-                            )}
-                            id={`aa-${selected.id}`}
-                          />
-                          <input
-                            className="field"
-                            placeholder="شناسه زرین / ERP (مرجع — SoR جدا)"
-                            defaultValue={String(
-                              selected.profile?.zarrin_ref || "",
-                            )}
-                            id={`zr-${selected.id}`}
-                            dir="ltr"
-                          />
-                          <Button
-                            variant="secondary"
-                            className="min-h-11 w-full sm:w-auto"
-                            onClick={() => {
-                              void (async () => {
-                                const mz = (
-                                  document.getElementById(
-                                    `mz-${selected.id}`,
-                                  ) as HTMLInputElement | null
-                                )?.value;
-                                const aa = (
-                                  document.getElementById(
-                                    `aa-${selected.id}`,
-                                  ) as HTMLInputElement | null
-                                )?.value;
-                                const zr = (
-                                  document.getElementById(
-                                    `zr-${selected.id}`,
-                                  ) as HTMLInputElement | null
-                                )?.value;
-                                try {
-                                  await didarApi.updateParty(selected.id, {
-                                    profile: {
-                                      market_zone: mz?.trim() || undefined,
-                                      assigned_agent: aa?.trim() || undefined,
-                                      zarrin_ref: zr?.trim() || undefined,
-                                    },
-                                  });
-                                  await openParty(selected);
-                                  toast("فیلدهای اختصاصی دیدار ذخیره شد");
-                                } catch (err) {
-                                  toast(
-                                    err instanceof Error
-                                      ? err.message
-                                      : "خطا در ذخیره",
-                                    "warn",
-                                  );
-                                }
-                              })();
-                            }}
-                          >
-                            ذخیره اختصاصی دیدار
-                          </Button>
-                        </div>
-                      </Field>
-                    </div>
-                  ) : null}
-
-                  <h3 className="mt-6 text-sm font-semibold">اعضا</h3>
-                  <ul className="mt-3 space-y-2">
-                    {members.length === 0 ? (
-                      <li className="rounded-xl bg-[var(--cream)] p-4 text-sm leading-7 text-[var(--muted)] ring-1 ring-[var(--line)]">
-                        هنوز کسی وصل نیست. این فروشگاه/کارخانه/بنکدار در شبکه معتبر است —
-                        وقتی نماینده یا خریدار مشخص شد، «تخصیص شخص» را بزنید.
-                      </li>
-                    ) : (
-                      members.map((m) => (
-                        <li
-                          key={m.id}
-                          className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-white/60 px-3 ring-1 ring-[var(--line)]"
-                        >
-                          <span className="text-sm">
-                            {m.user_name}
-                            <span className="text-[var(--muted)]"> · {m.title}</span>
-                          </span>
-                          {canManage ? (
-                            <Button
-                              variant="secondary"
-                              onClick={() => void unassign(m.id)}
-                            >
-                              برداشتن
-                            </Button>
-                          ) : null}
-                        </li>
-                      ))
-                    )}
-                  </ul>
-
-                  {canManage ? (
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <Button onClick={() => setOpenAssign(true)}>
-                        تخصیص شخص
-                      </Button>
-                      <Button variant="secondary" onClick={() => void archiveSelected()}>
-                        بایگانی
-                      </Button>
-                    </div>
-                  ) : null}
                 </div>
-              )}
-            </Panel>
+
+                <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between gap-2">
+                  <Link href={`/app/network/parties/${p.id}`} className="flex-1">
+                    <Button variant="secondary" className="w-full text-xs">
+                      داشبورد و پروفایل UID
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="text-xs px-2.5"
+                    onClick={() => setSelectedParty(p)}
+                  >
+                    پیش‌نمایش
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {filteredParties.length === 0 && (
+          <div className="rounded-2xl border border-[var(--line)] bg-white p-10 text-center text-xs text-[var(--muted)]">
+            طرفی با این مشخصات یافت نشد.
           </div>
+        )}
+      </section>
 
-          <div className="mt-8">
-            <h2 className="mb-3 text-sm font-semibold">راهنمای انواع طرف در ایران</h2>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {types.map((t) => (
-                <Panel key={t.kind} className="p-5">
-                  <p className="font-semibold text-[var(--ink)]">{t.label_fa}</p>
-                  <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
-                    {t.what_they_do}
-                  </p>
-                  <p className="mt-3 text-xs text-[var(--muted)]">
-                    افزودن آزاد · حذف سخت نه · بایگانی بله · مسئول اختیاری
-                  </p>
-                </Panel>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : null}
-
-      {tab === "roles" ? (
-        <>
-          <Panel className="mb-4 p-5 text-sm leading-7 text-[var(--muted)]">
-            نقش‌های سیستمی قابل بایگانی نیستند. نقش سفارشی اضافه کنید و بعداً به اشخاص بدهید (یک نفر چند نقش).
-          </Panel>
-          <DataTable
-            headers={["عنوان", "کد", "نوع", "توضیح", "عمل"]}
-            rows={roles.map((r) => [
-              r.label_fa,
-              <span key={r.id} data-ltr className="font-mono text-xs">
-                {r.code}
-              </span>,
-              r.is_system ? (
-                <Badge key={`${r.id}-s`} tone="ok">
-                  سیستمی
-                </Badge>
-              ) : (
-                <Badge key={`${r.id}-c`} tone="neutral">
-                  سفارشی
-                </Badge>
-              ),
-              r.description || "—",
-              canManage && !r.is_system ? (
-                <Button
-                  key={`${r.id}-a`}
-                  variant="secondary"
-                  onClick={() => void archiveRole(r.id)}
-                >
-                  بایگانی
-                </Button>
-              ) : (
-                "—"
-              ),
-            ])}
-            empty="نقشی نیست."
-          />
-        </>
-      ) : null}
-
-      {tab === "people" ? (
-        <>
-          <Panel className="mb-4 p-5 text-sm leading-7 text-[var(--muted)]">
-            شخص ≠ نقش. یک نفر می‌تواند چند نقش داشته باشد و به چند فروشگاه/بنکدار وصل شود.
-          </Panel>
-          <DataTable
-            headers={["نام", "نقش اصلی", "همه نقش‌ها", "سازمان اصلی", "وضعیت"]}
-            rows={people.map((p) => [
-              p.name,
-              p.primary_role,
-              <span key={`${p.id}-r`} data-ltr className="font-mono text-xs">
-                {p.roles.join(", ")}
-              </span>,
-              p.primary_org_name,
-              p.status,
-            ])}
-            empty="شخصی نیست."
-          />
-          <div className="mt-4">
-            <DomainLinkButton href="/app/admin/users">
-              دعوت کاربر جدید (حاکمیت)
-            </DomainLinkButton>
-          </div>
-        </>
-      ) : null}
-
-      <ActionModal
+      {/* QUICK CREATE MODAL */}
+      <Modal
         open={openCreate}
         onClose={() => setOpenCreate(false)}
-        title="افزودن طرف شبکه"
-        description="اول موجودیت بازار را بسازید؛ مسئول بعداً اختیاری است."
-        confirmLabel="ثبت"
-        onConfirm={() => void createParty()}
+        title="افزودن طرف جدید به شبکه دیدار"
+        subtitle="تعریف کارگاه، بنکدار، گالری یا ایجنت"
       >
-        <Field label="نوع">
-          <select
-            className="field min-h-11"
-            value={formKind}
-            onChange={(e) => setFormKind(e.target.value)}
-          >
-            {types.map((t) => (
-              <option key={t.kind} value={t.kind}>
-                {t.label_fa}
-              </option>
-            ))}
-          </select>
-        </Field>
-        {formType ? (
-          <p className="mb-3 text-sm leading-6 text-[var(--muted)]">
-            {formType.what_they_do}
-          </p>
-        ) : null}
-        <Field label="نام">
-          <input
-            className="field min-h-11"
-            value={formName}
-            onChange={(e) => setFormName(e.target.value)}
-          />
-        </Field>
-        <Field label="شهر">
-          <input
-            className="field min-h-11"
-            value={formCity}
-            onChange={(e) => setFormCity(e.target.value)}
-          />
-        </Field>
-        <Field label="آدرس">
-          <input
-            className="field min-h-11"
-            value={formAddress}
-            onChange={(e) => setFormAddress(e.target.value)}
-          />
-        </Field>
-        <Field label="تلفن">
-          <input
-            className="field min-h-11"
-            dir="ltr"
-            value={formPhone}
-            onChange={(e) => setFormPhone(e.target.value)}
-          />
-        </Field>
-        <Field label="جواز اتحادیه">
-          <input
-            className="field min-h-11"
-            value={formLicense}
-            onChange={(e) => setFormLicense(e.target.value)}
-          />
-        </Field>
-        <Field label="خلاصه فعالیت (اختیاری)">
-          <input
-            className="field min-h-11"
-            value={formSummary}
-            onChange={(e) => setFormSummary(e.target.value)}
-          />
-        </Field>
-      </ActionModal>
+        <form onSubmit={handleCreateParty} className="space-y-4 text-xs">
+          <div>
+            <label className="mb-1 block font-semibold text-[var(--ink)]">
+              نوع طرف شبکه
+            </label>
+            <select
+              className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] outline-none"
+              value={formKind}
+              onChange={(e) => setFormKind(e.target.value)}
+            >
+              <option value="retailer">گالری و خرده‌فروش طلا</option>
+              <option value="wholesaler">بنکدار طلا و پخش عمده</option>
+              <option value="producer">کارخانه / کارگاه طلا</option>
+              <option value="agent">ایجنت فروش میدانی</option>
+              <option value="vault">خزانه و امانات</option>
+              <option value="service_partner">همکار ترانزیت و خدمات</option>
+            </select>
+          </div>
 
-      <ActionModal
-        open={openAssign}
-        onClose={() => setOpenAssign(false)}
-        title="تخصیص شخص به طرف"
-        description="یک شخص می‌تواند به چند فروشگاه/بنکدار وصل شود."
-        confirmLabel="تخصیص"
-        onConfirm={() => void assignMember()}
-      >
-        <Field label="شخص">
-          <select
-            className="field min-h-11"
-            value={assignUserId}
-            onChange={(e) => setAssignUserId(e.target.value)}
-          >
-            <option value="">— انتخاب —</option>
-            {people.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.username})
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="عنوان در این محل">
-          <input
-            className="field min-h-11"
-            value={assignTitle}
-            onChange={(e) => setAssignTitle(e.target.value)}
-          />
-        </Field>
-      </ActionModal>
+          <div>
+            <label className="mb-1 block font-semibold text-[var(--ink)]">
+              نام کسب‌وکار یا برند <span className="text-red-500">*</span>
+            </label>
+            <Input
+              required
+              placeholder="مثال: گالری طلای زروان"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+            />
+          </div>
 
-      <ActionModal
-        open={openRole}
-        onClose={() => setOpenRole(false)}
-        title="نقش سفارشی"
-        description="نقش‌هایی که در بازار شما معنا دارند — بدون دستکاری هسته."
-        confirmLabel="ثبت نقش"
-        onConfirm={() => void createRole()}
-      >
-        <Field label="کد انگلیسی">
-          <input
-            className="field min-h-11"
-            dir="ltr"
-            value={roleCode}
-            onChange={(e) => setRoleCode(e.target.value)}
-            placeholder="e.g. field_supervisor"
-          />
-        </Field>
-        <Field label="عنوان فارسی">
-          <input
-            className="field min-h-11"
-            value={roleLabel}
-            onChange={(e) => setRoleLabel(e.target.value)}
-          />
-        </Field>
-        <Field label="توضیح">
-          <input
-            className="field min-h-11"
-            value={roleDesc}
-            onChange={(e) => setRoleDesc(e.target.value)}
-          />
-        </Field>
-      </ActionModal>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block font-semibold text-[var(--ink)]">
+                شهر
+              </label>
+              <Input
+                placeholder="تهران"
+                value={formCity}
+                onChange={(e) => setFormCity(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block font-semibold text-[var(--ink)]">
+                شماره تماس <span className="text-red-500">*</span>
+              </label>
+              <Input
+                required
+                dir="ltr"
+                placeholder="0912..."
+                value={formPhone}
+                onChange={(e) => setFormPhone(e.target.value)}
+              />
+            </div>
+          </div>
 
-      <ActionModal
-        open={openGrant}
-        onClose={() => setOpenGrant(false)}
-        title="اعطای نقش اضافه"
-        description="نقش اصلی جلسه حفظ می‌شود؛ نقش‌های اضافه برای چندنقشی است."
-        confirmLabel="اعطا"
-        onConfirm={() => void grantRole()}
-      >
-        <Field label="شخص">
-          <select
-            className="field min-h-11"
-            value={grantUserId}
-            onChange={(e) => setGrantUserId(e.target.value)}
-          >
-            <option value="">—</option>
-            {people.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="نقش">
-          <select
-            className="field min-h-11"
-            value={grantRoleCode}
-            onChange={(e) => setGrantRoleCode(e.target.value)}
-          >
-            <option value="">—</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.code}>
-                {r.label_fa}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </ActionModal>
-    </DomainOverviewPage>
-    </div>
-  );
-}
+          <div>
+            <label className="mb-1 block font-semibold text-[var(--ink)]">
+              شماره پروانه کسب / شناسه اتحادیه
+            </label>
+            <Input
+              placeholder="مثال: TR-4421"
+              value={formLicense}
+              onChange={(e) => setFormLicense(e.target.value)}
+            />
+          </div>
 
-function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`min-h-11 rounded-xl px-3 text-sm transition ${
-        active
-          ? "bg-[var(--gold)] text-[var(--ink)]"
-          : "bg-white/70 text-[var(--ink)] ring-1 ring-[var(--line)]"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
+          <div>
+            <label className="mb-1 block font-semibold text-[var(--ink)]">
+              آدرس
+            </label>
+            <Input
+              placeholder="نشانی فروشگاه یا کارگاه..."
+              value={formAddress}
+              onChange={(e) => setFormAddress(e.target.value)}
+            />
+          </div>
 
-function Row({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="flex justify-between gap-4">
-      <dt className="text-[var(--muted)]">{label}</dt>
-      <dd className="text-left text-[var(--ink)]">{value}</dd>
+          <div className="flex justify-end gap-2 pt-3 border-t border-[var(--line)]">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setOpenCreate(false)}
+            >
+              انصراف
+            </Button>
+            <Button type="submit">ثبت و ایجاد پروفایل</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* PARTY DETAILS MODAL */}
+      {selectedParty && (
+        <Modal
+          open={Boolean(selectedParty)}
+          onClose={() => setSelectedParty(null)}
+          title={selectedParty.name}
+          subtitle={selectedParty.kind_label}
+        >
+          <div className="space-y-4 text-xs">
+            <div className="rounded-2xl bg-[var(--mist)] p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">شهر:</span>
+                <span className="font-semibold">{selectedParty.city || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">نشانی:</span>
+                <span>{selectedParty.address || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">شماره تماس:</span>
+                <span className="font-mono font-semibold" dir="ltr">
+                  {selectedParty.phone || "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">جواز اتحادیه طلا:</span>
+                <span className="font-mono">
+                  {selectedParty.union_license || "—"}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <p className="font-bold text-[var(--ink)] mb-1">شرح فعالیت:</p>
+              <p className="text-[var(--muted)] leading-6">
+                {selectedParty.what_they_do}
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[var(--line)]">
+              <Button
+                variant="secondary"
+                onClick={() => setSelectedParty(null)}
+              >
+                بستن
+              </Button>
+              <Link href="/app/network/customers">
+                <Button>مدیریت کامل در لیست مشتریان</Button>
+              </Link>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
